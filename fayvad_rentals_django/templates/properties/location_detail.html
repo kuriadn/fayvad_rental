@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'properties:location_list' %}" class="text-gray-700 hover:text-accent-900">Locations</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">{{ location.name }}</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Location Header -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">{{ location.name }}</h1>
+                <p class="text-gray-600 mt-1">{{ location.address }}, {{ location.city }}</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{% url 'properties:location_update' location.pk %}" class="bg-accent text-white px-4 py-2 rounded-md hover:bg-accent text-sm">
+                    Edit Location
+                </a>
+                <a href="{% url 'properties:location_delete' location.pk %}" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm">
+                    Delete Location
+                </a>
+            </div>
+        </div>
+
+        <!-- Location Stats -->
+        <div class="px-6 py-4 bg-gray-50">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-gray-900">{{ room_count }}</div>
+                    <div class="text-sm text-gray-600">Total Rooms</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600">{{ occupied_count }}</div>
+                    <div class="text-sm text-gray-600">Occupied</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-accent-900">{{ available_count }}</div>
+                    <div class="text-sm text-gray-600">Available</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-gray-600">{{ maintenance_count }}</div>
+                    <div class="text-sm text-gray-600">Maintenance</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Details -->
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Location Information</h3>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Location Code</dt>
+                            <dd class="text-sm text-gray-900">{{ location.code }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Address</dt>
+                            <dd class="text-sm text-gray-900">{{ location.address }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">City</dt>
+                            <dd class="text-sm text-gray-900">{{ location.city }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Manager</dt>
+                            <dd class="text-sm text-gray-900">
+                                {% if location.manager %}
+                                    {{ location.manager.get_full_name|default:location.manager.username }}
+                                {% else %}
+                                    <span class="text-gray-500">Not assigned</span>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Status</dt>
+                            <dd class="text-sm">
+                                {% if location.is_active %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                        Inactive
+                                    </span>
+                                {% endif %}
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Setup Information</h3>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Setup Complete</dt>
+                            <dd class="text-sm">
+                                {% if location.setup_complete %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Yes
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        In Progress
+                                    </span>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        {% if location.setup_date %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Setup Date</dt>
+                            <dd class="text-sm text-gray-900">{{ location.setup_date|date:"M d, Y" }}</dd>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Created</dt>
+                            <dd class="text-sm text-gray-900">{{ location.created_at|date:"M d, Y H:i" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
+                            <dd class="text-sm text-gray-900">{{ location.updated_at|date:"M d, Y H:i" }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rooms in this Location -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-medium text-gray-900">Rooms in {{ location.name }}</h2>
+            <a href="{% url 'properties:room_create' %}" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm">
+                Add Room
+            </a>
+        </div>
+
+        {% if rooms %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Floor</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenant</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for room in rooms %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <a href="{% url 'properties:room_detail' room.pk %}" class="text-accent-900 hover:text-accent-900">
+                                {{ room.room_number }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ room.get_room_type_display }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ room.floor|default:"-" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ room.capacity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if room.status == 'available' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Available
+                                </span>
+                            {% elif room.status == 'occupied' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-accent-100 text-accent-800">
+                                    Occupied
+                                </span>
+                            {% elif room.status == 'maintenance' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Maintenance
+                                </span>
+                            {% else %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    {{ room.get_status_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <span class="text-gray-500">TBD</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{% url 'properties:room_detail' room.pk %}" class="text-accent-900 hover:text-accent-900 mr-3">View</a>
+                            <a href="{% url 'properties:room_update' room.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="px-6 py-8 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No rooms</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by adding rooms to this location.</p>
+            <div class="mt-6">
+                <a href="{% url 'properties:room_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Add Room
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Occupancy Chart Placeholder -->
+    {% if rooms %}
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Occupancy Overview</h3>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="relative">
+                        <svg class="w-24 h-24 mx-auto" viewBox="0 0 36 36">
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                  fill="none" stroke="#E5E7EB" stroke-width="2"/>
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                  fill="none" stroke="#10B981" stroke-width="2"
+                                  stroke-dasharray="{% widthratio occupied_count room_count 100 %}, 100"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-lg font-semibold text-gray-900">{{ occupied_count }}</span>
+                        </div>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-600">Occupied Rooms</p>
+                </div>
+
+                <div class="text-center">
+                    <div class="relative">
+                        <svg class="w-24 h-24 mx-auto" viewBox="0 0 36 36">
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                  fill="none" stroke="#E5E7EB" stroke-width="2"/>
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                  fill="none" stroke="#3B82F6" stroke-width="2"
+                                  stroke-dasharray="{% widthratio available_count room_count 100 %}, 100"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-lg font-semibold text-gray-900">{{ available_count }}</span>
+                        </div>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-600">Available Rooms</p>
+                </div>
+
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-gray-900 mb-2">
+                        {% widthratio occupied_count room_count 100 %}%
+                    </div>
+                    <p class="text-sm text-gray-600">Occupancy Rate</p>
+                    <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-accent h-2 rounded-full" style="width: {% widthratio occupied_count room_count 100 %}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

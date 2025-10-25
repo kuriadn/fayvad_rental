@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Rooms - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-gray-900">Rooms</h1>
+    <a href="{% url 'properties:room_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+      Add Room
+    </a>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-medium text-gray-900">Filters</h2>
+    </div>
+    <div class="p-6">
+      <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Search</label>
+          <input type="text" name="search" value="{{ search_query }}" placeholder="Room number or location..."
+                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Location</label>
+          <select name="location" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="">All Locations</option>
+            {% for location in locations %}
+            <option value="{{ location.pk }}" {% if location_filter == location.pk|stringformat:"s" %}selected{% endif %}>
+              {{ location.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Status</label>
+          <select name="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="">All Statuses</option>
+            {% for status_choice in room_statuses %}
+            <option value="{{ status_choice.0 }}" {% if status_filter == status_choice.0 %}selected{% endif %}>
+              {{ status_choice.1 }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Type</label>
+          <select name="type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="">All Types</option>
+            {% for type_choice in room_types %}
+            <option value="{{ type_choice.0 }}" {% if type_filter == type_choice.0 %}selected{% endif %}>
+              {{ type_choice.1 }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="md:col-span-4 flex justify-end space-x-3">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+            Apply Filters
+          </button>
+          <a href="{% url 'properties:room_list' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+            Clear
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Rooms Table -->
+  <div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <h2 class="text-lg font-medium text-gray-900">Rooms ({{ total_count }})</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rent</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenant</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for room in page_obj %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ room.room_number }}</div>
+              <div class="text-sm text-gray-500">Floor {{ room.floor }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ room.location.name }}</div>
+              <div class="text-sm text-gray-500">{{ room.location.code }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full
+                {% if room.room_type == 'single' %}bg-blue-100 text-blue-800
+                {% elif room.room_type == 'double' %}bg-green-100 text-green-800
+                {% elif room.room_type == 'triple' %}bg-purple-100 text-purple-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ room.get_room_type_display }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full
+                {% if room.status == 'available' %}bg-green-100 text-green-800
+                {% elif room.status == 'occupied' %}bg-blue-100 text-blue-800
+                {% elif room.status == 'maintenance' %}bg-yellow-100 text-yellow-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ room.get_status_display }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              KSh {{ room.rent_amount|floatformat:0 }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {% if room.current_tenant %}
+              <div class="text-sm text-gray-900">{{ room.current_tenant.name }}</div>
+              <div class="text-sm text-gray-500">{{ room.current_tenant.phone }}</div>
+              {% else %}
+              <span class="text-sm text-gray-500">Vacant</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+              <a href="{% url 'properties:room_detail' room.pk %}" class="text-blue-600 hover:text-blue-900">View</a>
+              <a href="{% url 'properties:room_update' room.pk %}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+              {% if room.current_tenant %}
+              <a href="{% url 'properties:room_remove_tenant' room.pk %}" class="text-red-600 hover:text-red-900"
+                 onclick="return confirm('Are you sure you want to remove the tenant from this room?')">Remove Tenant</a>
+              {% else %}
+              <a href="{% url 'properties:room_assign_tenant' room.pk %}" class="text-green-600 hover:text-green-900">Assign Tenant</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+              No rooms found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+      <div class="flex items-center justify-between">
+        <div class="text-sm text-gray-700">
+          Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+        </div>
+        <div class="flex space-x-1">
+          {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if location_filter %}&location={{ location_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
+             class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">Previous</a>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <span class="px-3 py-1 text-sm bg-blue-600 text-white border border-blue-600 rounded">{{ num }}</span>
+            {% elif num > page_obj.number|add:-3 and num < page_obj.number|add:3 %}
+            <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if location_filter %}&location={{ location_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
+               class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if location_filter %}&location={{ location_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}"
+             class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">Next</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

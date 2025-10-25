@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Breadcrumbs -->
+    <nav class="flex mb-4" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+            <li><span class="text-gray-500">/</span></li>
+            <li><a href="{% url 'rentals:rental_agreement_list' %}" class="text-gray-700 hover:text-accent-900">Rental Agreements</a></li>
+            <li><span class="text-gray-500">/</span></li>
+            <li><a href="{% url 'rentals:rental_agreement_detail' agreement.pk %}" class="text-gray-700 hover:text-accent-900">{{ agreement.agreement_number }}</a></li>
+            <li><span class="text-gray-500">/</span></li>
+            <li><span class="text-gray-900">{{ action|title }}</span></li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    {% if action == 'activate' %}
+                        <svg class="h-8 w-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    {% elif action == 'terminate' %}
+                        <svg class="h-8 w-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    {% elif action == 'give_notice' %}
+                        <svg class="h-8 w-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                    {% endif %}
+                </div>
+                <div class="ml-5">
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        {% if action == 'activate' %}
+                            Activate Rental Agreement
+                        {% elif action == 'terminate' %}
+                            Terminate Rental Agreement
+                        {% elif action == 'give_notice' %}
+                            Give Notice for Termination
+                        {% endif %}
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-600">{{ agreement.agreement_number }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-6 py-4">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="text-sm text-gray-700">
+                    {% if action == 'activate' %}
+                        <p class="mb-2"><strong>Are you sure you want to activate this rental agreement?</strong></p>
+                        <p>This will change the agreement status from "Draft" to "Active" and make it effective for rent collection.</p>
+                    {% elif action == 'terminate' %}
+                        <p class="mb-2"><strong>Are you sure you want to terminate this rental agreement?</strong></p>
+                        <p>This will end the tenancy relationship. Please specify the termination date below.</p>
+                    {% elif action == 'give_notice' %}
+                        <p class="mb-2"><strong>Are you sure you want to give notice for this rental agreement?</strong></p>
+                        <p>This will start the termination process. Please specify the notice date below.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agreement Details -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Agreement Details</h2>
+        </div>
+        <div class="px-6 py-4">
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Agreement Number</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ agreement.agreement_number }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                    <dd class="mt-1">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                            {% if agreement.status == 'active' %}bg-green-100 text-green-800
+                            {% elif agreement.status == 'draft' %}bg-yellow-100 text-yellow-800
+                            {% elif agreement.status == 'expired' %}bg-gray-100 text-gray-800
+                            {% elif agreement.status == 'terminated' %}bg-red-100 text-red-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ agreement.get_status_display }}
+                        </span>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Tenant</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        <a href="{% url 'tenants:tenant_detail' agreement.tenant.pk %}" class="text-accent-900 hover:text-accent-900">
+                            {{ agreement.tenant.name }}
+                        </a>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Room</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        <a href="{% url 'properties:room_detail' agreement.room.pk %}" class="text-accent-900 hover:text-accent-900">
+                            {{ agreement.room.full_room_identifier }}
+                        </a>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Monthly Rent</dt>
+                    <dd class="mt-1 text-sm text-gray-900">KSh {{ agreement.rent_amount|intcomma }}/month</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Security Deposit</dt>
+                    <dd class="mt-1 text-sm text-gray-900">KSh {{ agreement.deposit_amount|intcomma }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Start Date</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ agreement.start_date|date:"M j, Y" }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">End Date</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ agreement.end_date|date:"M j, Y" }}</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Action Form -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Confirm Action</h2>
+        </div>
+        <div class="px-6 py-4">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                {% if action == 'terminate' %}
+                <div>
+                    <label for="termination_date" class="block text-sm font-medium text-gray-700">
+                        Termination Date <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date"
+                           id="termination_date"
+                           name="termination_date"
+                           value="{% if agreement.termination_date %}{{ agreement.termination_date|date:'Y-m-d' }}{% endif %}"
+                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-accent focus:border-accent sm:text-sm"
+                           required>
+                    <p class="mt-1 text-sm text-gray-500">Date when the agreement will be terminated</p>
+                </div>
+                {% elif action == 'give_notice' %}
+                <div>
+                    <label for="notice_date" class="block text-sm font-medium text-gray-700">
+                        Notice Date <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date"
+                           id="notice_date"
+                           name="notice_date"
+                           value="{{ agreement.notice_date|default:''|date:'Y-m-d' }}"
+                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-accent focus:border-accent sm:text-sm"
+                           required>
+                    <p class="mt-1 text-sm text-gray-500">Date when notice was given</p>
+                </div>
+                {% endif %}
+
+                <div class="flex justify-end space-x-3 pt-4">
+                    <a href="{% url 'rentals:rental_agreement_detail' agreement.pk %}"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
+                                {% if action == 'activate' %}bg-green-600 hover:bg-green-700 focus:ring-green-500
+                                {% elif action == 'terminate' %}bg-red-600 hover:bg-red-700 focus:ring-red-500
+                                {% elif action == 'give_notice' %}bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500
+                                {% endif %}
+                                focus:outline-none focus:ring-2 focus:ring-offset-2">
+                        {% if action == 'activate' %}
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Activate Agreement
+                        {% elif action == 'terminate' %}
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Terminate Agreement
+                        {% elif action == 'give_notice' %}
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                            Give Notice
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

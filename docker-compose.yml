@@ -1,0 +1,43 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: fayvad-rental-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - fayvad-network
+
+  django-web:
+    build: ./fayvad_rentals_django
+    container_name: fayvad-rental-web
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=${DEBUG:-true}
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-change-this}
+      - DB_NAME=${DB_NAME:-fayvad_rental_db}
+      - DB_USER=${DB_USER:-fayvad}
+      - DB_PASSWORD=${DB_PASSWORD:-MeMiMo@0207}
+      - DB_HOST=${DB_HOST:-172.28.115.234}
+      - DB_PORT=${DB_PORT:-5432}
+      - REDIS_URL=redis://redis:6379/0
+      - ALLOWED_HOSTS=localhost,127.0.0.1,172.28.115.234
+    volumes:
+      - ./fayvad_rentals_django:/app
+      - ./media:/app/media
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - fayvad-network
+    command: gunicorn fayvad_rentals.wsgi:application --bind 0.0.0.0:8000 --workers 3
+
+volumes:
+  redis_data:
+
+networks:
+  fayvad-network:
+    driver: bridge

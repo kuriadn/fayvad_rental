@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}Tenant Management - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">Tenants</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header Actions -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-lg font-medium text-gray-900">All Tenants</h2>
+            <p class="text-sm text-gray-500">{{ total_count }} total tenants</p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="{% url 'tenants:tenant_onboarding' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                New Tenant
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4" id="tenant-search-form">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">Search</label>
+                    {{ search_form.search }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Status</label>
+                    {{ search_form.tenant_status }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Type</label>
+                    {{ search_form.tenant_type }}
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent">
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tenant List -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <ul class="divide-y divide-gray-200" id="tenant-list">
+            {% for tenant in tenants %}
+            <li class="px-6 py-4 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                <span class="text-sm font-medium text-gray-700">
+                                    {{ tenant.name|slice:":2"|upper }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">
+                                <a href="{% url 'tenants:tenant_detail' tenant.id %}" class="hover:text-accent-900">
+                                    {{ tenant.name }}
+                                </a>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                {% if tenant.email %}{{ tenant.email }}{% endif %}
+                                {% if tenant.phone %} • {{ tenant.phone }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <!-- Status Badge -->
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if tenant.status == 'active' %}bg-green-100 text-green-800
+                            {% elif tenant.status == 'prospective' %}bg-accent-100 text-accent-800
+                            {% elif tenant.status == 'former' %}bg-gray-100 text-gray-800
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ tenant.status|title }}
+                        </span>
+
+                        <!-- Quick Actions -->
+                        <div class="flex space-x-2">
+                            <a href="{% url 'tenants:tenant_detail' tenant.id %}"
+                               class="text-gray-400 hover:text-gray-600" title="View Details">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </a>
+                            <a href="{% url 'tenants:tenant_update' tenant.id %}"
+                               class="text-gray-400 hover:text-gray-600" title="Edit">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </a>
+                            {% if can_delete_tenants %}
+                            <a href="{% url 'tenants:tenant_delete' tenant.id %}"
+                               class="text-red-400 hover:text-red-600" title="Delete">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="mt-2 sm:flex sm:justify-between">
+                    <div class="sm:flex">
+                        <div class="flex items-center text-sm text-gray-500">
+                            Type: {{ tenant.get_tenant_type_display }}
+                        </div>
+                        {% if tenant.compliance_status != 'compliant' %}
+                        <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                {% if tenant.compliance_status == 'warning' %}bg-yellow-100 text-yellow-800
+                                {% elif tenant.compliance_status == 'violation' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ tenant.get_compliance_status_display }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                        <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                        </svg>
+                        Created {{ tenant.created_at|date:"M j, Y" }}
+                    </div>
+                </div>
+            </li>
+            {% empty %}
+            <li class="px-6 py-4 text-center text-gray-500">
+                No tenants found matching your criteria.
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Pagination -->
+    {% if tenants.has_other_pages %}
+    <div class="flex items-center justify-between bg-white px-4 py-3 sm:px-6 rounded-lg shadow">
+        <div class="flex-1 flex justify-between sm:hidden">
+            {% if tenants.has_previous %}
+            <a href="?page={{ tenants.previous_page_number }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800">
+                Previous
+            </a>
+            {% endif %}
+
+            {% if tenants.has_next %}
+            <a href="?page={{ tenants.next_page_number }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800">
+                Next
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Showing
+                    <span class="font-medium">{{ tenants.start_index }}</span>
+                    to
+                    <span class="font-medium">{{ tenants.end_index }}</span>
+                    of
+                    <span class="font-medium">{{ tenants.paginator.count }}</span>
+                    results
+                </p>
+            </div>
+            <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                    {% if tenants.has_previous %}
+                    <a href="?page={{ tenants.previous_page_number }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        <span>Previous</span>
+                    </a>
+                    {% endif %}
+
+                    {% for num in tenants.paginator.page_range %}
+                        {% if tenants.number == num %}
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-accent-50 text-sm font-medium text-accent-900">
+                            {{ num }}
+                        </span>
+                        {% elif num > tenants.number|add:'-3' and num < tenants.number|add:'3' %}
+                        <a href="?page={{ num }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            {{ num }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if tenants.has_next %}
+                    <a href="?page={{ tenants.next_page_number }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        <span>Next</span>
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// VanillaJS for tenant list interactivity (replaces React components)
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit search form on filter change
+    const filterSelects = document.querySelectorAll('#tenant-search-form select');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            document.getElementById('tenant-search-form').submit();
+        });
+    });
+
+    // Status update via AJAX (like React state updates)
+    const statusButtons = document.querySelectorAll('.status-update-btn');
+    statusButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const tenantId = this.dataset.tenantId;
+            const newStatus = this.dataset.status;
+
+            if (confirm(`Change tenant status to ${newStatus}?`)) {
+                FBS.ajax(`/tenants/${tenantId}/status/`, {
+                    method: 'POST',
+                    body: { status: newStatus }
+                })
+                .then(response => {
+                    if (response.success) {
+                        FBS.showToast('Status updated successfully', 'success');
+                        location.reload(); // Simple refresh (could be optimized)
+                    } else {
+                        FBS.showToast('Failed to update status', 'error');
+                    }
+                })
+                .catch(error => {
+                    FBS.showToast('Network error', 'error');
+                    console.error('Status update failed:', error);
+                });
+            }
+        });
+    });
+
+    console.log('Tenant list page initialized');
+});
+</script>
+{% endblock %}

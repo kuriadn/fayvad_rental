@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Delete {{ staff.full_name }} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'accounts:staff_list' %}" class="text-gray-700 hover:text-accent-900">Staff Management</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">Delete {{ staff.full_name }}</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-md">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h1 class="text-xl font-semibold text-gray-900">Delete Staff Member</h1>
+            <p class="mt-1 text-sm text-gray-600">Are you sure you want to delete this staff member? This action cannot be undone.</p>
+        </div>
+
+        <div class="p-6">
+            <!-- Staff Member Info -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                            <span class="text-lg font-medium text-gray-700">
+                                {{ staff.user.first_name|first|upper }}{{ staff.user.last_name|first|upper }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">{{ staff.full_name }}</h3>
+                        <p class="text-sm text-gray-600">{{ staff.get_role_display }}</p>
+                        <p class="text-sm text-gray-500">{{ staff.user.username }} • {{ staff.user.email }}</p>
+                        {% if staff.employee_id %}
+                            <p class="text-sm text-gray-500">Employee ID: {{ staff.employee_id }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning Message -->
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">Warning</h3>
+                        <div class="mt-2 text-sm text-red-700">
+                            <p>This will permanently delete:</p>
+                            <ul class="list-disc list-inside mt-1 space-y-1">
+                                <li>The staff member's profile and all associated data</li>
+                                <li>The user account ({{ staff.user.username }})</li>
+                                <li>Any location assignments if this staff member manages locations</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'accounts:staff_list' %}"
+                   class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
+                    Cancel
+                </a>
+                <form method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                        Delete Staff Member
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

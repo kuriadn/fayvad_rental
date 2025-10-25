@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'rentals:rental_agreement_list' %}" class="text-gray-700 hover:text-accent-900">Rental Agreements</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">{{ agreement.agreement_number }}</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Agreement Header -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">{{ agreement.agreement_number }}</h1>
+                <p class="text-gray-600 mt-1">
+                    {{ agreement.tenant.name }} - {{ agreement.room.room_number }} at {{ agreement.room.location.name }}
+                </p>
+            </div>
+            <div class="flex items-center space-x-3">
+                {% if agreement.status == 'draft' %}
+                    <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        Draft
+                    </span>
+                {% elif agreement.status == 'active' %}
+                    <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                        Active
+                    </span>
+                {% elif agreement.status == 'expired' %}
+                    <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">
+                        Expired
+                    </span>
+                {% elif agreement.status == 'terminated' %}
+                    <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">
+                        Terminated
+                    </span>
+                {% endif %}
+                <div class="flex space-x-2">
+                    <a href="{% url 'rentals:rental_agreement_update' agreement.pk %}" class="bg-accent text-white px-4 py-2 rounded-md hover:bg-accent text-sm">
+                        Edit Agreement
+                    </a>
+                    {% if agreement.status == 'active' %}
+                        <a href="{% url 'rentals:rental_agreement_give_notice' agreement.pk %}" class="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 text-sm">
+                            Give Notice
+                        </a>
+                        <a href="{% url 'rentals:rental_agreement_terminate' agreement.pk %}" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm">
+                            Terminate
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Agreement Summary -->
+        <div class="px-6 py-4 bg-gray-50">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                    <div class="text-lg font-semibold text-gray-900">{{ agreement.rent_amount|intcomma }}</div>
+                    <div class="text-sm text-gray-600">Monthly Rent (KSh)</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-lg font-semibold text-gray-900">{{ agreement.deposit_amount|intcomma }}</div>
+                    <div class="text-sm text-gray-600">Deposit (KSh)</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-lg font-semibold text-gray-900">{{ agreement.start_date|date:"M d, Y" }}</div>
+                    <div class="text-sm text-gray-600">Start Date</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-lg font-semibold text-gray-900">{{ agreement.end_date|date:"M d, Y" }}</div>
+                    <div class="text-sm text-gray-600">End Date</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agreement Details -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Tenant Information -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Tenant Information</h2>
+            </div>
+            <div class="px-6 py-4">
+                <dl class="space-y-3">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Name</dt>
+                        <dd class="text-sm text-gray-900">
+                            <a href="{% url 'tenants:tenant_detail' agreement.tenant.pk %}" class="text-accent-900 hover:text-accent-900">
+                                {{ agreement.tenant.name }}
+                            </a>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Email</dt>
+                        <dd class="text-sm text-gray-900">{{ agreement.tenant.email|default:"Not provided" }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Phone</dt>
+                        <dd class="text-sm text-gray-900">{{ agreement.tenant.phone|default:"Not provided" }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">ID Number</dt>
+                        <dd class="text-sm text-gray-900">{{ agreement.tenant.id_number|default:"Not provided" }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Tenant Type</dt>
+                        <dd class="text-sm text-gray-900">{{ agreement.tenant.get_tenant_type_display|default:"Not specified" }}</dd>
+                    </div>
+                    {% if agreement.tenant.emergency_contact_name %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Emergency Contact</dt>
+                        <dd class="text-sm text-gray-900">{{ agreement.tenant.emergency_contact_name }} ({{ agreement.tenant.emergency_contact_phone }})</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+
+        <!-- Room Information -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Room Information</h2>
+            </div>
+            <div class="px-6 py-4">
+                <dl class="space-y-3">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Room Number</dt>
+                        <dd class="text-sm text-gray-900">
+                            <a href="{% url 'properties:room_detail' agreement.room.pk %}" class="text-accent-900 hover:text-accent-900">
+                                {{ agreement.room.room_number }}
+                            </a>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Location</dt>
+                        <dd class="text-sm text-gray-900">
+                            <a href="{% url 'properties:location_detail' agreement.room.location.pk %}" class="text-accent-900 hover:text-accent-900">
+                                {{ agreement.room.location.name }}
+                            </a>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Address</dt>
+                        <dd class="text-sm text-gray-900">{{ agreement.room.location.address }}, {{ agreement.room.location.city }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Room Type</dt>
+                        <dd class="text-sm text-gray-900">{{ agreement.room.get_room_type_display }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Floor</dt>
+                        <dd class="text-sm text-gray-900">{{ agreement.room.floor|default:"Not specified" }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Room Status</dt>
+                        <dd class="text-sm">
+                            {% if agreement.room.status == 'available' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Available</span>
+                            {% elif agreement.room.status == 'occupied' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-accent-100 text-accent-800">Occupied</span>
+                            {% elif agreement.room.status == 'maintenance' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Maintenance</span>
+                            {% else %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{{ agreement.room.get_status_display }}</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agreement Terms -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Agreement Terms</h2>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-md font-medium text-gray-900 mb-3">Financial Terms</h3>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Monthly Rent</dt>
+                            <dd class="text-sm text-gray-900">KSh {{ agreement.rent_amount|intcomma }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Security Deposit</dt>
+                            <dd class="text-sm text-gray-900">KSh {{ agreement.deposit_amount|intcomma }}</dd>
+                        </div>
+                        {% if agreement.security_deposit_returned %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Deposit Returned</dt>
+                            <dd class="text-sm text-green-600">Yes {% if agreement.security_deposit_return_date %}on {{ agreement.security_deposit_return_date|date:"M d, Y" }}{% endif %}</dd>
+                        </div>
+                        {% else %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Deposit Returned</dt>
+                            <dd class="text-sm text-red-600">No</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+
+                <div>
+                    <h3 class="text-md font-medium text-gray-900 mb-3">Notice & Termination</h3>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Notice Period</dt>
+                            <dd class="text-sm text-gray-900">{{ agreement.notice_period_days }} days</dd>
+                        </div>
+                        {% if agreement.notice_given_date %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Notice Given</dt>
+                            <dd class="text-sm text-orange-600">{{ agreement.notice_given_date|date:"M d, Y" }}</dd>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Agreement Status</dt>
+                            <dd class="text-sm text-gray-900">{{ agreement.get_status_display }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+
+            {% if agreement.special_terms %}
+            <div class="mt-6">
+                <h3 class="text-md font-medium text-gray-900 mb-3">Special Terms & Conditions</h3>
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <p class="text-sm text-gray-700 whitespace-pre-line">{{ agreement.special_terms }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Payments -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-medium text-gray-900">Payment History</h2>
+            <a href="{% url 'payments:tenant_payments' agreement.tenant.pk %}" class="text-accent-900 hover:text-accent-900 text-sm">
+                View All Payments ({{ payment_count }})
+            </a>
+        </div>
+
+        {% if payments %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for payment in payments %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ payment.created_at|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            KSh {{ payment.amount|intcomma }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ payment.get_payment_method_display }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if payment.status == 'completed' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Completed
+                                </span>
+                            {% elif payment.status == 'pending' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Pending
+                                </span>
+                            {% elif payment.status == 'failed' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    Failed
+                                </span>
+                            {% elif payment.status == 'refunded' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-accent-100 text-accent-800">
+                                    Refunded
+                                </span>
+                            {% else %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    {{ payment.get_status_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ payment.reference_number|default:"N/A" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="px-6 py-8 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No payments found</h3>
+            <p class="mt-1 text-sm text-gray-500">This agreement has no payment records yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Agreement Timeline -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Agreement Timeline</h2>
+        </div>
+        <div class="px-6 py-4">
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-2 h-2 bg-accent rounded-full"></div>
+                    <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">Agreement Created</div>
+                        <div class="text-sm text-gray-500">{{ agreement.created_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                </div>
+
+                {% if agreement.status == 'active' %}
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-2 h-2 bg-green-600 rounded-full"></div>
+                    <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">Agreement Activated</div>
+                        <div class="text-sm text-gray-500">Currently active</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if agreement.notice_given_date %}
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-2 h-2 bg-yellow-600 rounded-full"></div>
+                    <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">Notice Given</div>
+                        <div class="text-sm text-gray-500">{{ agreement.notice_given_date|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if agreement.status == 'terminated' %}
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-2 h-2 bg-red-600 rounded-full"></div>
+                    <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">Agreement Terminated</div>
+                        <div class="text-sm text-gray-500">{{ agreement.updated_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if agreement.status == 'expired' %}
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-2 h-2 bg-gray-600 rounded-full"></div>
+                    <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">Agreement Expired</div>
+                        <div class="text-sm text-gray-500">{{ agreement.end_date|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if agreement.security_deposit_returned %}
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-2 h-2 bg-green-600 rounded-full"></div>
+                    <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">Deposit Returned</div>
+                        <div class="text-sm text-gray-500">{{ agreement.security_deposit_return_date|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

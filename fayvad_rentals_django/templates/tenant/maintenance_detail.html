@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ maintenance_request.title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-4 py-5 sm:p-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ maintenance_request.title }}</h1>
+                    <p class="mt-2 text-gray-600">Request #{{ maintenance_request.request_number }}</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="inline-flex px-3 py-1 rounded-full text-sm font-medium
+                        {% if maintenance_request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif maintenance_request.status == 'in_progress' %}bg-accent-100 text-accent-800
+                        {% elif maintenance_request.status == 'completed' %}bg-green-100 text-green-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ maintenance_request.get_status_display }}
+                    </span>
+                    <a href="{% url 'tenant:maintenance_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Requests
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Details -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Description -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Description</h3>
+                    <p class="text-gray-700 whitespace-pre-wrap">{{ maintenance_request.description }}</p>
+                </div>
+            </div>
+
+            <!-- Attachments -->
+            {% if maintenance_request.photo_urls or maintenance_request.document_urls %}
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Attachments</h3>
+
+                    {% if maintenance_request.photo_urls %}
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Photos</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {% for photo_url in maintenance_request.photo_urls %}
+                            <div class="relative">
+                                <img src="{{ photo_url }}" alt="Maintenance photo" class="w-full h-32 object-cover rounded-lg border border-gray-200">
+                                <a href="{{ photo_url }}" target="_blank" class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-opacity rounded-lg flex items-center justify-center">
+                                    <svg class="w-8 h-8 text-white opacity-0 hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if maintenance_request.document_urls %}
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Documents</h4>
+                        <div class="space-y-2">
+                            {% for doc_url in maintenance_request.document_urls %}
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                <a href="{{ doc_url }}" target="_blank" class="text-accent-900 hover:text-accent-900 font-medium">
+                                    {{ doc_url|urlize|cut:"/media/"|truncatechars:50 }}
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Request Info -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Request Information</h3>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Priority</dt>
+                            <dd class="mt-1">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                    {% if maintenance_request.priority == 'urgent' %}bg-red-100 text-red-800
+                                    {% elif maintenance_request.priority == 'high' %}bg-orange-100 text-orange-800
+                                    {% elif maintenance_request.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ maintenance_request.get_priority_display }}
+                                </span>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Status</dt>
+                            <dd class="mt-1">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                    {% if maintenance_request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif maintenance_request.status == 'in_progress' %}bg-accent-100 text-accent-800
+                                    {% elif maintenance_request.status == 'completed' %}bg-green-100 text-green-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ maintenance_request.get_status_display }}
+                                </span>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Submitted</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.created_at|date:"M d, Y g:i A" }}</dd>
+                        </div>
+                        {% if maintenance_request.scheduled_date %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Scheduled For</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.scheduled_date|date:"M d, Y g:i A" }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if maintenance_request.completed_date %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Completed</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.completed_date|date:"M d, Y g:i A" }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if maintenance_request.estimated_cost %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Estimated Cost</dt>
+                            <dd class="mt-1 text-sm text-gray-900">KES {{ maintenance_request.estimated_cost|floatformat:2 }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if maintenance_request.actual_cost %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Actual Cost</dt>
+                            <dd class="mt-1 text-sm text-gray-900">KES {{ maintenance_request.actual_cost|floatformat:2 }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Assignment Info -->
+            {% if maintenance_request.assigned_to %}
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Assignment</h3>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Assigned To</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.assigned_to }}</dd>
+                        </div>
+                        {% if maintenance_request.assigned_date %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Assigned Date</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.assigned_date|date:"M d, Y g:i A" }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Resolution Info -->
+            {% if maintenance_request.resolution_notes %}
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Resolution</h3>
+                    <p class="text-gray-700 whitespace-pre-wrap">{{ maintenance_request.resolution_notes }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Feedback -->
+            {% if maintenance_request.status == 'completed' and not maintenance_request.tenant_feedback %}
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="text-center">
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Rate Our Service</h3>
+                        <p class="text-gray-600 mb-4">How satisfied were you with the maintenance service?</p>
+                        <a href="{% url 'tenant:maintenance_feedback' maintenance_request.pk %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent">
+                            Provide Feedback
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

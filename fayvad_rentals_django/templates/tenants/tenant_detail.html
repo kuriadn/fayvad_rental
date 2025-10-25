@@ -1,0 +1,746 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'tenants:tenant_list' %}" class="text-gray-700 hover:text-accent-900">Tenants</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">{{ tenant.name }}</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">{{ tenant.name }}</h1>
+            <p class="mt-2 text-gray-600">Tenant ID: {{ tenant.id }}</p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="{% url 'tenants:tenant_update' tenant.id %}"
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent-800">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Edit Tenant
+            </a>
+            {% if can_delete_tenants %}
+            <a href="{% url 'tenants:tenant_delete' tenant.id %}"
+               class="inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Delete Tenant
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Status Banner -->
+    <div class="mb-6">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+            {% if tenant.status == 'active' %}bg-green-100 text-green-800
+            {% elif tenant.status == 'prospective' %}bg-accent-100 text-accent-800
+            {% elif tenant.status == 'former' %}bg-gray-100 text-gray-800
+            {% else %}bg-red-100 text-red-800{% endif %}">
+            {{ tenant.status|title }}
+        </span>
+    </div>
+
+    <!-- Compliance & Violations Management Strip -->
+    {% load static %}
+    <div id="compliance-section" class="bg-white shadow rounded-lg overflow-hidden mb-6">
+        <!-- Header with Status -->
+        <div class="bg-gradient-to-r from-orange-50 to-red-50 px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Compliance Management</h3>
+                        <p class="text-sm text-gray-600">Track violations, warnings, and compliance status</p>
+                    </div>
+                </div>
+                <div id="compliance-status" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold">
+                    <!-- Status will be loaded via JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="px-6 py-4">
+            <!-- Compliance Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <!-- Compliance Status -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="text-sm font-medium text-gray-600 mb-1">Compliance Status</div>
+                    <div id="compliance-status-display" class="text-lg font-semibold text-gray-900">Loading...</div>
+                </div>
+
+                <!-- Violation Count -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="text-sm font-medium text-gray-600 mb-1">Violation Count</div>
+                    <div id="violation-count" class="text-lg font-semibold text-red-600">0</div>
+                </div>
+
+                <!-- Days in Status -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="text-sm font-medium text-gray-600 mb-1">Days in Current Status</div>
+                    <div id="days-in-status" class="text-lg font-semibold text-gray-900">0</div>
+                </div>
+
+                <!-- Last Action -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="text-sm font-medium text-gray-600 mb-1">Last Compliance Action</div>
+                    <div id="last-action" class="text-sm font-semibold text-gray-900">None</div>
+                </div>
+            </div>
+
+            <!-- Available Actions -->
+            <div class="mb-6">
+                <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                    <svg class="w-4 h-4 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Available Actions
+                </h4>
+                <div id="compliance-actions" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="text-sm text-gray-500 col-span-full text-center py-4">Loading compliance actions...</div>
+                </div>
+            </div>
+
+            <!-- Compliance History -->
+            <div>
+                <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                    <svg class="w-4 h-4 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Compliance History
+                </h4>
+                <div id="compliance-history" class="space-y-3 max-h-64 overflow-y-auto">
+                    <div class="text-sm text-gray-500 text-center py-4">Loading compliance history...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Basic Info -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Basic Information -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Basic Information</h2>
+                </div>
+                <div class="px-6 py-4">
+                    <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Full Name</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ tenant.name }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Email</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ tenant.email|default:"Not provided" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Phone</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ tenant.phone|default:"Not provided" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">ID Number</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ tenant.id_number|default:"Not provided" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Tenant Type</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ tenant.get_tenant_type_display }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Institution/Employer</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ tenant.institution_employer|default:"Not provided" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Emergency Contact</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ tenant.emergency_contact_name|default:"Not provided" }}
+                                {% if tenant.emergency_contact_phone %} ({{ tenant.emergency_contact_phone }}){% endif %}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Account Balance</dt>
+                            <dd class="mt-1 text-sm text-gray-900">KSh {{ tenant.account_balance|intcomma }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Rental Agreements -->
+            {% if tenant.rental_agreements.exists %}
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Rental Agreements</h2>
+                    <a href="{% url 'rentals:rental_agreement_list' %}?tenant={{ tenant.id }}"
+                       class="text-accent-900 hover:text-accent-900 text-sm font-medium">View All</a>
+                </div>
+                <div class="px-6 py-4">
+                    {% for agreement in tenant.rental_agreements.all|slice:":3" %}
+                    <div class="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">
+                                <a href="{% url 'rentals:rental_agreement_detail' agreement.pk %}" class="hover:text-accent-900">
+                                    {{ agreement.agreement_number }}
+                                </a>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                {{ agreement.room.location.name }} • {{ agreement.room.room_number }}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-medium text-gray-900">KSh {{ agreement.rent_amount|intcomma }}/month</div>
+                            <div class="text-sm text-gray-500">{{ agreement.get_status_display }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Payments -->
+            {% if tenant.payments.exists %}
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Recent Payments</h2>
+                    <a href="{% url 'payments:payment_list' %}?tenant={{ tenant.id }}"
+                       class="text-accent-900 hover:text-accent-900 text-sm font-medium">View All</a>
+                </div>
+                <div class="px-6 py-4">
+                    {% for payment in tenant.payments.all|slice:":5" %}
+                    <div class="flex items-center justify-between py-3 border-b border-gray-200 last:border-b-0">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">{{ payment.payment_number }}</div>
+                            <div class="text-sm text-gray-500">
+                                {% if payment.room %}{{ payment.room.room_number }} • {% endif %}{{ payment.payment_date|date:"M j, Y" }}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-medium text-gray-900">KSh {{ payment.amount|intcomma }}</div>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                {% if payment.status == 'completed' %}bg-green-100 text-green-800
+                                {% elif payment.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ payment.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column - Summary & Actions -->
+        <div class="space-y-6">
+            <!-- Financial Summary -->
+            {% if financial_summary %}
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Financial Summary</h2>
+                </div>
+                <div class="px-6 py-4 space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-500">Total Paid</span>
+                        <span class="text-sm font-medium text-gray-900">KSh {{ financial_summary.total_paid|intcomma }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-500">Outstanding Balance</span>
+                        <span class="text-sm font-medium text-red-600">KSh {{ financial_summary.outstanding_balance|intcomma }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-500">Last Payment</span>
+                        <span class="text-sm font-medium text-gray-900">
+                            {% if financial_summary.last_payment_date %}
+                                {{ financial_summary.last_payment_date|date:"M j, Y" }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Documents -->
+            {% if tenant.documents.exists %}
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Documents</h2>
+                    <a href="{% url 'documents:document_list' %}?tenant={{ tenant.id }}"
+                       class="text-accent-900 hover:text-accent-900 text-sm font-medium">View All</a>
+                </div>
+                <div class="px-6 py-4">
+                    {% for document in tenant.documents.all|slice:":3" %}
+                    <div class="flex items-center justify-between py-2">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-8 w-8">
+                                <div class="h-8 w-8 rounded-lg bg-gray-300 flex items-center justify-center">
+                                    <span class="text-xs font-medium text-gray-700">
+                                        {% if document.document_type == 'contract' %}📄{% elif document.document_type == 'agreement' %}🤝{% elif document.document_type == 'id_document' %}🆔{% else %}📋{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-sm font-medium text-gray-900">
+                                    <a href="{% url 'documents:document_detail' document.pk %}" class="hover:text-accent-900">
+                                        {{ document.title|truncatechars:20 }}
+                                    </a>
+                                </div>
+                                <div class="text-xs text-gray-500">{{ document.get_document_type_display }}</div>
+                            </div>
+                        </div>
+                        {% if document.file %}
+                        <a href="{{ document.file.url }}" target="_blank"
+                           class="text-accent-900 hover:text-accent-900 text-sm">Download</a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Timestamps -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Record Information</h2>
+                </div>
+                <div class="px-6 py-4 space-y-3">
+                    <div>
+                        <span class="text-sm text-gray-500">Created:</span>
+                        <span class="text-sm text-gray-900 ml-2">{{ tenant.created_at|date:"M j, Y \a\t g:i A" }}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-500">Last Updated:</span>
+                        <span class="text-sm text-gray-900 ml-2">{{ tenant.updated_at|date:"M j, Y \a\t g:i A" }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+// Load compliance workflow status when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadComplianceStatus();
+});
+
+function loadComplianceStatus() {
+    const tenantId = '{{ tenant.id }}';
+    console.log('Loading compliance status for tenant:', tenantId);
+
+    // Load workflow status
+    fetch(`/api/workflows/tenant/${tenantId}/status/`, {
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        console.log('Compliance API response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Compliance API response data:', data);
+        if (data.success) {
+            updateComplianceUI(data.data);
+        } else {
+            console.error('Failed to load compliance status:', data.error);
+            showComplianceError('Failed to load compliance data: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error loading compliance status:', error);
+        showComplianceError('Error loading compliance: ' + error.message);
+    });
+}
+
+function updateComplianceUI(complianceData) {
+    // Update status badge
+    const statusElement = document.getElementById('compliance-status');
+    const status = complianceData.compliance_status || 'compliant';
+    let statusClass = 'bg-green-100 text-green-800';
+    let statusText = 'Compliant';
+
+    if (status === 'warning') {
+        statusClass = 'bg-yellow-100 text-yellow-800';
+        statusText = 'Warning';
+    } else if (status === 'violation') {
+        statusClass = 'bg-red-100 text-red-800';
+        statusText = 'Violation';
+    }
+
+    statusElement.className = `inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${statusClass}`;
+    statusElement.innerHTML = `
+        <span class="w-2 h-2 rounded-full mr-2 ${status === 'compliant' ? 'bg-green-500' : status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'}"></span>
+        ${statusText}
+    `;
+
+    // Update metrics
+    document.getElementById('compliance-status-display').textContent = statusText;
+    document.getElementById('violation-count').textContent = complianceData.violation_count || 0;
+    document.getElementById('days-in-status').textContent = complianceData.days_in_current_status || 0;
+
+    // Update available actions
+    const actionsElement = document.getElementById('compliance-actions');
+    const availableEvents = complianceData.available_events || [];
+    console.log('Available compliance events:', availableEvents);
+
+    if (availableEvents.length > 0) {
+        let actionsHtml = '';
+        availableEvents.forEach(event => {
+            const buttonClass = getComplianceActionButtonClass(event);
+            const buttonIcon = getComplianceActionButtonIcon(event);
+            const buttonText = formatComplianceActionName(event);
+
+            actionsHtml += `
+                <button onclick="performComplianceAction('${event}')"
+                        class="group relative bg-white border-2 border-orange-200 rounded-lg p-4 hover:border-orange-500 hover:bg-orange-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 active:bg-orange-100">
+                    <div class="flex items-center justify-center mb-2">
+                        <div class="${buttonIcon}"></div>
+                    </div>
+                    <div class="text-sm font-semibold text-orange-900 text-center group-hover:text-orange-800">${buttonText}</div>
+                </button>
+            `;
+        });
+        actionsElement.innerHTML = actionsHtml;
+    } else {
+        actionsElement.innerHTML = `
+            <div class="col-span-full text-center py-8">
+                <div class="text-gray-500 text-sm">
+                    No actions available for current compliance status
+                </div>
+            </div>
+        `;
+    }
+
+    // Update history
+    const historyElement = document.getElementById('compliance-history');
+    const history = complianceData.workflow_history || [];
+
+    if (history.length > 0) {
+        let historyHtml = '';
+        history.slice(0, 10).forEach(item => {
+            const timestamp = new Date(item.timestamp).toLocaleDateString();
+            historyHtml += `
+                <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900">${item.event_name}</p>
+                        <p class="text-sm text-gray-600">${item.notes || ''}</p>
+                        <p class="text-xs text-gray-500">${timestamp} by ${item.user}</p>
+                    </div>
+                </div>
+            `;
+        });
+        historyElement.innerHTML = historyHtml;
+    } else {
+        historyElement.innerHTML = `
+            <div class="text-sm text-gray-500 text-center py-4">
+                No compliance history available
+            </div>
+        `;
+    }
+
+    // Update last action
+    if (history.length > 0) {
+        const lastAction = history[0];
+        document.getElementById('last-action').textContent = `${lastAction.event_name} (${new Date(lastAction.timestamp).toLocaleDateString()})`;
+    }
+}
+
+function showComplianceError(message) {
+    const actionsElement = document.getElementById('compliance-actions');
+    if (actionsElement) {
+        actionsElement.innerHTML = `
+            <div class="col-span-full text-center py-4">
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="text-red-800 text-sm">
+                        <strong>Compliance Error:</strong> ${message}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function getComplianceActionButtonClass(event) {
+    const classes = {
+        'report_violation': 'w-6 h-6 text-red-600',
+        'issue_warning': 'w-6 h-6 text-yellow-600',
+        'resolve_violation': 'w-6 h-6 text-green-600',
+        'escalate_violation': 'w-6 h-6 text-orange-600',
+        'blacklist_tenant': 'w-6 h-6 text-red-800',
+    };
+    return classes[event] || 'w-6 h-6 text-gray-600';
+}
+
+function getComplianceActionButtonIcon(event) {
+    const icons = {
+        'report_violation': 'w-6 h-6 text-red-600',
+        'issue_warning': 'w-6 h-6 text-yellow-600',
+        'resolve_violation': 'w-6 h-6 text-green-600',
+        'escalate_violation': 'w-6 h-6 text-orange-600',
+        'blacklist_tenant': 'w-6 h-6 text-red-800',
+    };
+    return icons[event] || 'w-6 h-6 text-gray-600';
+}
+
+function formatComplianceActionName(event) {
+    const names = {
+        'report_violation': 'Report Violation',
+        'issue_warning': 'Issue Warning',
+        'resolve_violation': 'Resolve Violation',
+        'escalate_violation': 'Escalate Violation',
+        'blacklist_tenant': 'Blacklist Tenant',
+    };
+    return names[event] || event.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function performComplianceAction(action) {
+    // Show modal for the specific action
+    showComplianceActionModal(action);
+}
+
+function showComplianceActionModal(action) {
+    // Create or update modal content based on action
+    let modalContent = '';
+    let modalTitle = '';
+
+    switch(action) {
+        case 'report_violation':
+            modalTitle = 'Report Tenant Violation';
+            modalContent = `
+                <form id="report-violation-form" class="space-y-4">
+                    <div class="bg-red-50 p-4 rounded-md">
+                        <p class="text-sm text-red-800">
+                            Reporting a violation will change the tenant's compliance status and may trigger automated notifications and follow-ups.
+                        </p>
+                    </div>
+                    <div>
+                        <label for="violation_type" class="block text-sm font-medium text-gray-700">Violation Type <span class="text-red-500">*</span></label>
+                        <select id="violation_type" name="violation_type" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                            <option value="">Select violation type</option>
+                            <option value="rent_payment">Late Rent Payment</option>
+                            <option value="property_damage">Property Damage</option>
+                            <option value="noise_complaint">Noise Complaint</option>
+                            <option value="unauthorized_occupant">Unauthorized Occupant</option>
+                            <option value="contract_violation">Contract Violation</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700">Description <span class="text-red-500">*</span></label>
+                        <textarea id="description" name="description" rows="4" required
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                                  placeholder="Provide detailed description of the violation"></textarea>
+                    </div>
+                </form>
+            `;
+            break;
+
+        case 'issue_warning':
+            modalTitle = 'Issue Formal Warning';
+            modalContent = `
+                <form id="issue-warning-form" class="space-y-4">
+                    <div class="bg-yellow-50 p-4 rounded-md">
+                        <p class="text-sm text-yellow-800">
+                            Issuing a formal warning will be recorded in the tenant's compliance history and may affect future lease renewals.
+                        </p>
+                    </div>
+                    <div>
+                        <label for="warning_reason" class="block text-sm font-medium text-gray-700">Warning Reason <span class="text-red-500">*</span></label>
+                        <textarea id="warning_reason" name="warning_reason" rows="3" required
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                                  placeholder="Explain the reason for this warning"></textarea>
+                    </div>
+                </form>
+            `;
+            break;
+
+        case 'resolve_violation':
+            modalTitle = 'Resolve Violation';
+            modalContent = `
+                <form id="resolve-violation-form" class="space-y-4">
+                    <div class="bg-green-50 p-4 rounded-md">
+                        <p class="text-sm text-green-800">
+                            Resolving a violation will restore the tenant to compliant status and clear the violation record.
+                        </p>
+                    </div>
+                    <div>
+                        <label for="resolution_notes" class="block text-sm font-medium text-gray-700">Resolution Notes <span class="text-red-500">*</span></label>
+                        <textarea id="resolution_notes" name="resolution_notes" rows="4" required
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                  placeholder="Describe how the violation was resolved"></textarea>
+                    </div>
+                </form>
+            `;
+            break;
+
+        case 'escalate_violation':
+            modalTitle = 'Escalate Violation';
+            modalContent = `
+                <form id="escalate-violation-form" class="space-y-4">
+                    <div class="bg-orange-50 p-4 rounded-md">
+                        <p class="text-sm text-orange-800">
+                            Escalating a violation will notify management and may result in additional actions or penalties.
+                        </p>
+                    </div>
+                    <div>
+                        <label for="escalation_reason" class="block text-sm font-medium text-gray-700">Escalation Reason <span class="text-red-500">*</span></label>
+                        <textarea id="escalation_reason" name="escalation_reason" rows="3" required
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                                  placeholder="Explain why this violation needs escalation"></textarea>
+                    </div>
+                </form>
+            `;
+            break;
+
+        case 'blacklist_tenant':
+            modalTitle = 'Blacklist Tenant';
+            modalContent = `
+                <form id="blacklist-tenant-form" class="space-y-4">
+                    <div class="bg-red-50 p-4 rounded-md">
+                        <p class="text-sm text-red-800 font-semibold">
+                            ⚠️ WARNING: This action cannot be undone and will prevent the tenant from entering new agreements.
+                        </p>
+                    </div>
+                    <div>
+                        <label for="blacklisting_reason" class="block text-sm font-medium text-gray-700">Blacklisting Reason <span class="text-red-500">*</span></label>
+                        <textarea id="blacklisting_reason" name="blacklisting_reason" rows="3" required
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                                  placeholder="Provide detailed reason for blacklisting"></textarea>
+                    </div>
+                </form>
+            `;
+            break;
+    }
+
+    // Show modal (assuming you have a modal system)
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+    modal.innerHTML = `
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">${modalTitle}</h3>
+                    <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="mb-4">
+                    ${modalContent}
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button onclick="this.closest('.fixed').remove()"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200">
+                        Cancel
+                    </button>
+                    <button onclick="submitComplianceAction('${action}')"
+                            class="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700">
+                        Submit
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function submitComplianceAction(action) {
+    const modal = document.querySelector('.fixed');
+    const form = modal.querySelector('form');
+
+    if (!form) return;
+
+    // Validate form
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    // Show loading state
+    const submitBtn = modal.querySelector('button:last-child');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Processing...';
+    submitBtn.disabled = true;
+
+    // Collect form data
+    const formData = new FormData(form);
+    const actionData = {};
+    for (let [key, value] of formData.entries()) {
+        if (value.trim()) {
+            actionData[key] = value.trim();
+        }
+    }
+
+    const tenantId = '{{ tenant.id }}';
+
+    // Perform workflow action
+    fetch(`/api/workflows/tenant/${tenantId}/action/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: action,
+            data: actionData
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw new Error(err.error || `HTTP ${response.status}: ${response.statusText}`); });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Close modal and reload page
+            modal.remove();
+            location.reload();
+        } else {
+            alert('Action failed: ' + (data.error || 'Unknown error'));
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error performing compliance action:', error);
+        alert('An error occurred: ' + error.message);
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    });
+}
+</script>
+{% endblock %}

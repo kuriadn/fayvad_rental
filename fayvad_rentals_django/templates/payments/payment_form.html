@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}{% if payment %}Edit Payment{% else %}Record Payment{% endif %} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'payments:payment_list' %}" class="text-gray-700 hover:text-accent-900">Payments</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">{% if payment %}Edit Payment{% else %}Record Payment{% endif %}</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h1 class="text-xl font-semibold text-gray-900">
+                {% if payment %}Edit Payment: {{ payment.payment_number }}{% else %}Record New Payment{% endif %}
+            </h1>
+        </div>
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {% for field in form %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
+                    {% endif %}
+                    {% if field.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <a href="{% url 'payments:payment_list' %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md">Cancel</a>
+                <button type="submit" class="bg-accent text-white px-4 py-2 rounded-md">Record Payment</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Rental agreement data for auto-population
+const rentalAgreementData = {
+    {% for agreement in form.fields.rental_agreement.queryset %}
+    '{{ agreement.id }}': {
+        'tenant_id': '{{ agreement.tenant.id }}',
+        'tenant_name': '{{ agreement.tenant.name }}',
+        'room_id': '{{ agreement.room.id }}',
+        'room_name': '{{ agreement.room.room_number }}'
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+};
+
+// Auto-populate tenant and room when rental agreement changes
+document.addEventListener('DOMContentLoaded', function() {
+    const rentalAgreementSelect = document.getElementById('id_rental_agreement');
+    const tenantSelect = document.getElementById('id_tenant');
+    const roomSelect = document.getElementById('id_room');
+
+    if (rentalAgreementSelect && tenantSelect && roomSelect) {
+        rentalAgreementSelect.addEventListener('change', function() {
+            const selectedAgreementId = this.value;
+
+            if (selectedAgreementId && rentalAgreementData[selectedAgreementId]) {
+                const data = rentalAgreementData[selectedAgreementId];
+
+                // Auto-populate tenant field
+                tenantSelect.value = data.tenant_id;
+
+                // Auto-populate room field
+                roomSelect.value = data.room_id;
+
+                // Add visual feedback
+                tenantSelect.style.backgroundColor = '#f0f9ff';
+                roomSelect.style.backgroundColor = '#f0f9ff';
+
+                setTimeout(() => {
+                    tenantSelect.style.backgroundColor = '';
+                    roomSelect.style.backgroundColor = '';
+                }, 1000);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

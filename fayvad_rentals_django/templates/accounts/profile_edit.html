@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white shadow rounded-lg mb-6">
+            <div class="px-4 py-5 sm:p-6">
+                <h1 class="text-2xl font-bold text-gray-900">Edit Profile</h1>
+                <p class="mt-1 text-sm text-gray-600">Update your account information and change your password.</p>
+            </div>
+        </div>
+
+        <!-- Edit Form -->
+        <div class="bg-white shadow rounded-lg">
+            <form method="post" class="divide-y divide-gray-200">
+                {% csrf_token %}
+
+                <!-- Profile Information Section -->
+                <div class="px-4 py-5 sm:p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Profile Information</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">First Name</label>
+                            <div class="mt-1">
+                                {{ form.first_name }}
+                            </div>
+                            {% if form.first_name.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">Last Name</label>
+                            <div class="mt-1">
+                                {{ form.last_name }}
+                            </div>
+                            {% if form.last_name.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">Email Address</label>
+                            <div class="mt-1">
+                                {{ form.email }}
+                            </div>
+                            {% if form.email.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Change Section -->
+                <div class="px-4 py-5 sm:p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Change Password</h2>
+                    <p class="text-sm text-gray-600 mb-4">Leave blank if you don't want to change your password.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ password_form.old_password.id_for_label }}" class="block text-sm font-medium text-gray-700">Current Password</label>
+                            <div class="mt-1">
+                                {{ password_form.old_password }}
+                            </div>
+                            {% if password_form.old_password.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ password_form.old_password.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div></div> <!-- Empty column for spacing -->
+
+                        <div>
+                            <label for="{{ password_form.new_password1.id_for_label }}" class="block text-sm font-medium text-gray-700">New Password</label>
+                            <div class="mt-1">
+                                {{ password_form.new_password1 }}
+                            </div>
+                            {% if password_form.new_password1.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ password_form.new_password1.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ password_form.new_password2.id_for_label }}" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                            <div class="mt-1">
+                                {{ password_form.new_password2 }}
+                            </div>
+                            {% if password_form.new_password2.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ password_form.new_password2.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if password_form.non_field_errors %}
+                        <div class="mt-4">
+                            {% for error in password_form.non_field_errors %}
+                                <p class="text-sm text-red-600">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Form Actions -->
+                <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                    <a href="{% url 'accounts:profile' %}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Cancel
+                    </a>
+                    <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Help Text -->
+        <div class="mt-6 bg-accent-50 border border-accent-200 rounded-md p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-accent-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-accent-800">Password Requirements</h3>
+                    <div class="mt-2 text-sm text-accent-700">
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Your password must contain at least 8 characters.</li>
+                            <li>Your password cannot be too similar to your other personal information.</li>
+                            <li>Your password cannot be a commonly used password.</li>
+                            <li>Your password cannot be entirely numeric.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

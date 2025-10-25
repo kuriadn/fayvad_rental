@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{% if maintenance_request %}Edit Maintenance Request{% else %}Create Maintenance Request{% endif %} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'maintenance:maintenance_request_list' %}" class="text-gray-700 hover:text-accent-900">Maintenance</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">{% if maintenance_request %}Edit Request{% else %}Create Request{% endif %}</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h1 class="text-xl font-semibold text-gray-900">
+                {% if maintenance_request %}Edit Maintenance Request: {{ maintenance_request.request_number }}{% else %}Create Maintenance Request{% endif %}
+            </h1>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="p-6">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="space-y-6">
+                <!-- Basic Information -->
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    {% for field in form %}
+                        {% if field.name not in 'photos,documents' %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">{{ field.label }}{% if field.field.required %} <span class="text-red-500">*</span>{% endif %}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
+                            {% endif %}
+                            {% if field.help_text %}
+                                <p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- File Uploads -->
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    {% for field in form %}
+                        {% if field.name in 'photos,documents' %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
+                            {% endif %}
+                            {% if field.help_text %}
+                                <p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <a href="{% url 'maintenance:maintenance_request_list' %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md">Cancel</a>
+                <button type="submit" class="bg-accent text-white px-4 py-2 rounded-md">Create Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

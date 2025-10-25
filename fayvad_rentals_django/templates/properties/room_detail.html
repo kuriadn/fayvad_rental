@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'properties:location_list' %}" class="text-gray-700 hover:text-accent-900">Locations</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'properties:location_detail' room.location.pk %}" class="text-gray-700 hover:text-accent-900">{{ room.location.name }}</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">{{ room.room_number }}</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">{{ room.full_room_identifier }}</h1>
+            <p class="mt-2 text-gray-600">Room ID: {{ room.id }}</p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="{% url 'properties:room_update' room.pk %}"
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent-800">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Edit Room
+            </a>
+            {% if can_delete_rooms %}
+            <a href="{% url 'properties:room_delete' room.pk %}"
+               class="inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Delete Room
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Status Banner -->
+    <div class="mb-6">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+            {% if room.status == 'available' %}bg-green-100 text-green-800
+            {% elif room.status == 'occupied' %}bg-accent-100 text-accent-800
+            {% elif room.status == 'maintenance' %}bg-yellow-100 text-yellow-800
+            {% else %}bg-gray-100 text-gray-800{% endif %}">
+            {{ room.get_status_display }}
+        </span>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Basic Info -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Basic Information -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Room Information</h2>
+                </div>
+                <div class="px-6 py-4">
+                    <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Room Number</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ room.room_number }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Location</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                <a href="{% url 'properties:location_detail' room.location.pk %}" class="text-accent-900 hover:text-accent-900">
+                                    {{ room.location.name }} ({{ room.location.code }})
+                                </a>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Room Type</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ room.get_room_type_display }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Capacity</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ room.capacity }} person{{ room.capacity|pluralize }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Floor</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ room.floor|default:"Not specified" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Status</dt>
+                            <dd class="mt-1">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if room.status == 'available' %}bg-green-100 text-green-800
+                                    {% elif room.status == 'occupied' %}bg-accent-100 text-accent-800
+                                    {% elif room.status == 'maintenance' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ room.get_status_display }}
+                                </span>
+                            </dd>
+                        </div>
+                    </dl>
+
+                    {% if room.description %}
+                    <div class="mt-6">
+                        <dt class="text-sm font-medium text-gray-500">Description</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ room.description }}</dd>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column - Summary & Actions -->
+        <div class="space-y-6">
+
+
+            <!-- Timestamps -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Record Information</h2>
+                </div>
+                <div class="px-6 py-4 space-y-3">
+                    <div>
+                        <span class="text-sm text-gray-500">Created:</span>
+                        <span class="text-sm text-gray-900 ml-2">{{ room.created_at|date:"M j, Y \a\t g:i A" }}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-500">Last Updated:</span>
+                        <span class="text-sm text-gray-900 ml-2">{{ room.updated_at|date:"M j, Y \a\t g:i A" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

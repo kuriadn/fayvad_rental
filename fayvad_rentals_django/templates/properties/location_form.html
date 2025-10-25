@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}{% if location %}Edit Location{% else %}Add Location{% endif %} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'properties:location_list' %}" class="text-gray-700 hover:text-accent-900">Locations</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">{% if location %}Edit Location{% else %}Add Location{% endif %}</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+    <!-- Success Message -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 bg-green-50 border-l-4 border-green-400 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800">{{ message }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Success Alert with Link -->
+    {% if created_location %}
+        <div class="mb-4 bg-accent-50 border-l-4 border-accent-400 p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-accent-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                    <p class="text-sm text-accent-700">
+                        Location created successfully! <a href="{% url 'properties:location_detail' created_location.pk %}" class="font-medium underline text-accent-700 hover:text-accent-900">View Location Details</a>
+                    </p>
+                </div>
+                <div class="ml-auto pl-3">
+                    <div class="-mx-1.5 -my-1.5">
+                        <button type="button" onclick="this.parentElement.parentElement.parentElement.parentElement.style.display='none'" class="inline-flex bg-accent-50 rounded-md p-1.5 text-accent-500 hover:bg-accent-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-accent-50 focus:ring-accent">
+                            <span class="sr-only">Dismiss</span>
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h1 class="text-xl font-semibold text-gray-900">
+                {% if location %}Edit Location: {{ location.name }}{% else %}Add New Location{% endif %}
+            </h1>
+            <p class="mt-1 text-sm text-gray-600">
+                {% if location %}Update the location details below.{% else %}Fill in the details to create a new rental location.{% endif %}
+            </p>
+        </div>
+
+        <form method="post" class="p-6" id="location-form">
+            <!-- Hidden field to track form submission -->
+            <input type="hidden" name="form_submitted" value="1" />
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Location Name -->
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                    {% if form.name.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ form.name.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Location Code -->
+                <div>
+                    <label for="{{ form.code.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ form.code.label }}</label>
+                    {{ form.code }}
+                    {% if form.code.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.code.errors.0 }}</p>
+                    {% endif %}
+                    {% if form.code.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ form.code.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Address -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ form.address.label }}</label>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.address.errors.0 }}</p>
+                    {% endif %}
+                    {% if form.address.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ form.address.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- City -->
+                <div>
+                    <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ form.city.label }}</label>
+                    {{ form.city }}
+                    {% if form.city.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.city.errors.0 }}</p>
+                    {% endif %}
+                    {% if form.city.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ form.city.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Manager -->
+                <div>
+                    <label for="{{ form.manager.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ form.manager.label }}</label>
+                    {{ form.manager }}
+                    {% if form.manager.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.manager.errors.0 }}</p>
+                    {% endif %}
+                    {% if form.manager.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ form.manager.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Is Active -->
+                <div class="flex items-center">
+                    <div class="flex items-center h-5">
+                        {{ form.is_active }}
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="{{ form.is_active.id_for_label }}" class="font-medium text-gray-700">{{ form.is_active.label }}</label>
+                        {% if form.is_active.help_text %}
+                            <p class="text-gray-500">{{ form.is_active.help_text }}</p>
+                        {% endif %}
+                        {% if form.is_active.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.is_active.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6">
+                <a href="{% url 'properties:location_list' %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-accent text-white px-4 py-2 rounded-md hover:bg-accent">
+                    {% if location %}Update Location{% else %}Add Location{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Auto-hide success messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide success messages
+    const successMessages = document.querySelectorAll('.bg-green-50, .bg-accent-50');
+    successMessages.forEach(function(message) {
+        setTimeout(function() {
+            if (message.style.display !== 'none') {
+                message.style.transition = 'opacity 0.5s ease-out';
+                message.style.opacity = '0';
+                setTimeout(function() {
+                    message.style.display = 'none';
+                }, 500);
+            }
+        }, 5000); // Hide after 5 seconds
+    });
+
+    // Clear form if it was successfully submitted
+    {% if created_location %}
+        // The form was successfully submitted and reset by the view
+        // Add any additional client-side behavior here if needed
+    {% endif %}
+
+    // Focus on first field for better UX
+    const firstField = document.querySelector('input:not([type="hidden"]), select, textarea');
+    if (firstField) {
+        firstField.focus();
+    }
+});
+</script>
+{% endblock %}

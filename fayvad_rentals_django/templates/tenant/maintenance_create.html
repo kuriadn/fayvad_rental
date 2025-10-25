@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Request Maintenance - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Request Maintenance</h1>
+                    <p class="mt-2 text-gray-600">Submit a maintenance request for your rental property</p>
+                </div>
+                <a href="{% url 'tenant:maintenance_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Requests
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white shadow rounded-lg">
+        <form method="post" enctype="multipart/form-data" class="divide-y divide-gray-200">
+            {% csrf_token %}
+
+            <!-- Basic Information -->
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Maintenance Details</h3>
+                <div class="grid grid-cols-1 gap-6">
+                    <div>
+                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">Title *</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">Brief description of the maintenance issue</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">Description *</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">Detailed description of the problem</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.priority.id_for_label }}" class="block text-sm font-medium text-gray-700">Priority</label>
+                            {{ form.priority }}
+                            {% if form.priority.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.priority.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.estimated_cost.id_for_label }}" class="block text-sm font-medium text-gray-700">Estimated Cost (KES)</label>
+                            {{ form.estimated_cost }}
+                            {% if form.estimated_cost.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.estimated_cost.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.scheduled_date.id_for_label }}" class="block text-sm font-medium text-gray-700">Preferred Date</label>
+                        {{ form.scheduled_date }}
+                        {% if form.scheduled_date.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.scheduled_date.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">When would you like this maintenance to be done?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attachments -->
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Attachments</h3>
+                <div class="space-y-6">
+                    <div>
+                        <label for="id_photos_input" class="block text-sm font-medium text-gray-700">Photos</label>
+                        <input type="file" id="id_photos_input" name="photos_files" accept="image/*" multiple class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100">
+                        <div id="photos-preview" class="mt-2 space-y-2"></div>
+                        <p class="mt-1 text-sm text-gray-500">Upload photos of the maintenance issue (multiple files allowed)</p>
+                    </div>
+
+                    <div>
+                        <label for="id_documents_input" class="block text-sm font-medium text-gray-700">Documents</label>
+                        <input type="file" id="id_documents_input" name="documents_files" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" multiple class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100">
+                        <div id="documents-preview" class="mt-2 space-y-2"></div>
+                        <p class="mt-1 text-sm text-gray-500">Upload any relevant documents (multiple files allowed)</p>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+            // Handle photo uploads
+            document.getElementById('id_photos_input').addEventListener('change', function(e) {
+                const files = e.target.files;
+                const preview = document.getElementById('photos-preview');
+
+                preview.innerHTML = '';
+
+                if (files.length > 0) {
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+
+                        const div = document.createElement('div');
+                        div.className = 'flex items-center space-x-2 text-sm text-gray-600';
+                        div.innerHTML = `
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
+                        `;
+                        preview.appendChild(div);
+                    }
+                }
+            });
+
+            // Handle document uploads
+            document.getElementById('id_documents_input').addEventListener('change', function(e) {
+                const files = e.target.files;
+                const preview = document.getElementById('documents-preview');
+
+                preview.innerHTML = '';
+
+                if (files.length > 0) {
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+
+                        const div = document.createElement('div');
+                        div.className = 'flex items-center space-x-2 text-sm text-gray-600';
+                        div.innerHTML = `
+                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span>${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
+                        `;
+                        preview.appendChild(div);
+                    }
+                }
+            });
+
+            // Handle form submission to include files
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const photosInput = document.getElementById('id_photos_input');
+                const documentsInput = document.getElementById('id_documents_input');
+
+                // Create FormData to handle file uploads
+                if (photosInput.files.length > 0 || documentsInput.files.length > 0) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+
+                    // Remove the file inputs and add files with proper names
+                    formData.delete('photos_files');
+                    formData.delete('documents_files');
+
+                    // Add photos
+                    for (let i = 0; i < photosInput.files.length; i++) {
+                        formData.append('photos', photosInput.files[i]);
+                    }
+
+                    // Add documents
+                    for (let i = 0; i < documentsInput.files.length; i++) {
+                        formData.append('documents', documentsInput.files[i]);
+                    }
+
+                    // Submit with fetch
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    }).then(response => {
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else {
+                            return response.text();
+                        }
+                    }).then(html => {
+                        if (html) {
+                            document.open();
+                            document.write(html);
+                            document.close();
+                        }
+                    }).catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while submitting the form. Please try again.');
+                    });
+                }
+            });
+            </script>
+
+            <!-- Actions -->
+            <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                <a href="{% url 'tenant:maintenance_list' %}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                    Cancel
+                </a>
+                <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                    Submit Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

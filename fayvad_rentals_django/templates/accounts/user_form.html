@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'accounts:user_list' %}" class="text-gray-700 hover:text-accent-900">Users</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">{{ page_title }}</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-4 py-5 sm:p-6">
+            <h1 class="text-3xl font-bold text-gray-900">{{ page_title }}</h1>
+            <p class="mt-2 text-gray-600">
+                {% if is_create %}
+                    Create a new user account with optional staff designation
+                {% else %}
+                    Edit user account and staff information
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white shadow rounded-lg">
+        <form method="post" class="divide-y divide-gray-200">
+            {% csrf_token %}
+
+            <!-- Basic User Information -->
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">Username *</label>
+                        <div class="mt-1">
+                            {{ form.username }}
+                        </div>
+                        {% if form.username.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.username.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.username.help_text }}</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">Email *</label>
+                        <div class="mt-1">
+                            {{ form.email }}
+                        </div>
+                        {% if form.email.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.email.help_text }}</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">First Name *</label>
+                        <div class="mt-1">
+                            {{ form.first_name }}
+                        </div>
+                        {% if form.first_name.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">Last Name *</label>
+                        <div class="mt-1">
+                            {{ form.last_name }}
+                        </div>
+                        {% if form.last_name.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+
+                    <div class="md:col-span-2">
+                        <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700">Phone</label>
+                        <div class="mt-1">
+                            {{ form.phone }}
+                        </div>
+                        {% if form.phone.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Section -->
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">
+                    {% if is_create %}Set Password{% else %}Change Password{% endif %}
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.password1.label }}{% if is_create %} *{% endif %}
+                        </label>
+                        <div class="mt-1">
+                            {{ form.password1 }}
+                        </div>
+                        {% if form.password1.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.password1.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.password1.help_text }}</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.password2.label }}{% if is_create %} *{% endif %}
+                        </label>
+                        <div class="mt-1">
+                            {{ form.password2 }}
+                        </div>
+                        {% if form.password2.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.password2.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.password2.help_text }}</p>
+                    </div>
+                </div>
+
+                {% if not is_create %}
+                <div class="mt-4 p-4 bg-accent-50 rounded-md">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-accent-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-accent-700">
+                                Leave password fields blank to keep the current password unchanged.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Account Settings -->
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Account Settings</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            {{ form.is_active }}
+                        </div>
+                        <div class="ml-3">
+                            <label for="{{ form.is_active.id_for_label }}" class="text-sm font-medium text-gray-700">
+                                Active Account
+                            </label>
+                            <p class="text-sm text-gray-500">{{ form.is_active.help_text }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            {{ form.is_staff }}
+                        </div>
+                        <div class="ml-3">
+                            <label for="{{ form.is_staff.id_for_label }}" class="text-sm font-medium text-gray-700">
+                                Staff Member
+                            </label>
+                            <p class="text-sm text-gray-500">{{ form.is_staff.help_text }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            {{ form.is_superuser }}
+                        </div>
+                        <div class="ml-3">
+                            <label for="{{ form.is_superuser.id_for_label }}" class="text-sm font-medium text-gray-700">
+                                Superuser
+                            </label>
+                            <p class="text-sm text-gray-500">{{ form.is_superuser.help_text }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staff Designation -->
+            <div class="px-4 py-5 sm:p-6" id="staff-section" style="{% if not form.is_staff_member.value %}display: none;{% endif %}">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Staff Information</h3>
+
+                <div class="flex items-start mb-4">
+                    <div class="flex items-center h-5">
+                        {{ form.is_staff_member }}
+                    </div>
+                    <div class="ml-3">
+                        <label for="{{ form.is_staff_member.id_for_label }}" class="text-sm font-medium text-gray-700">
+                            {{ form.is_staff_member.label }}
+                        </label>
+                        <p class="text-sm text-gray-500">{{ form.is_staff_member.help_text }}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="staff-fields" style="{% if not form.is_staff_member.value %}display: none;{% endif %}">
+                    <div>
+                        <label for="{{ form.role.id_for_label }}" class="block text-sm font-medium text-gray-700">Role *</label>
+                        <div class="mt-1">
+                            {{ form.role }}
+                        </div>
+                        {% if form.role.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.role.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.role.help_text }}</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.employee_id.id_for_label }}" class="block text-sm font-medium text-gray-700">Employee ID</label>
+                        <div class="mt-1">
+                            {{ form.employee_id }}
+                        </div>
+                        {% if form.employee_id.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.employee_id.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.employee_id.help_text }}</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.department.id_for_label }}" class="block text-sm font-medium text-gray-700">Department</label>
+                        <div class="mt-1">
+                            {{ form.department }}
+                        </div>
+                        {% if form.department.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.department.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.department.help_text }}</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.hire_date.id_for_label }}" class="block text-sm font-medium text-gray-700">Hire Date</label>
+                        <div class="mt-1">
+                            {{ form.hire_date }}
+                        </div>
+                        {% if form.hire_date.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.hire_date.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.hire_date.help_text }}</p>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="{{ form.emergency_contact_name.id_for_label }}" class="block text-sm font-medium text-gray-700">Emergency Contact Name</label>
+                        <div class="mt-1">
+                            {{ form.emergency_contact_name }}
+                        </div>
+                        {% if form.emergency_contact_name.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.emergency_contact_name.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.emergency_contact_name.help_text }}</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.emergency_contact_phone.id_for_label }}" class="block text-sm font-medium text-gray-700">Emergency Contact Phone</label>
+                        <div class="mt-1">
+                            {{ form.emergency_contact_phone }}
+                        </div>
+                        {% if form.emergency_contact_phone.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.emergency_contact_phone.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.emergency_contact_phone.help_text }}</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.emergency_contact_relationship.id_for_label }}" class="block text-sm font-medium text-gray-700">Emergency Contact Relationship</label>
+                        <div class="mt-1">
+                            {{ form.emergency_contact_relationship }}
+                        </div>
+                        {% if form.emergency_contact_relationship.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.emergency_contact_relationship.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.emergency_contact_relationship.help_text }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                <a href="{% url 'accounts:user_list' %}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancel
+                </a>
+                <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    {% if is_create %}Create User{% else %}Save Changes{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Toggle staff fields based on staff designation checkbox
+document.addEventListener('DOMContentLoaded', function() {
+    const staffCheckbox = document.getElementById('id_is_staff_member');
+    const staffSection = document.getElementById('staff-section');
+    const staffFields = document.getElementById('staff-fields');
+
+    if (staffCheckbox && staffSection && staffFields) {
+        staffCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                staffSection.style.display = 'block';
+                staffFields.style.display = 'grid';
+            } else {
+                staffSection.style.display = 'none';
+                staffFields.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

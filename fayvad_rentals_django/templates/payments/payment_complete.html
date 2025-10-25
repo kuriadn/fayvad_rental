@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Complete Payment: {{ payment.payment_number }} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'payments:payment_list' %}" class="text-gray-700 hover:text-accent-900">Payments</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'payments:payment_detail' payment.pk %}" class="text-gray-700 hover:text-accent-900">{{ payment.payment_number }}</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">Complete</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h1 class="text-xl font-semibold text-gray-900">Complete Payment</h1>
+            <p class="mt-1 text-sm text-gray-600">Mark payment {{ payment.payment_number }} as completed</p>
+        </div>
+        <form method="post" class="p-6">
+            {% csrf_token %}
+
+            <div class="space-y-4">
+                <div>
+                    <label for="id_transaction_id" class="block text-sm font-medium text-gray-700">
+                        Transaction ID (Optional)
+                    </label>
+                    <input type="text" name="transaction_id" id="id_transaction_id"
+                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-accent focus:border-accent sm:text-sm"
+                           placeholder="External transaction identifier">
+                    <p class="mt-1 text-sm text-gray-500">Transaction ID from the payment processor</p>
+                </div>
+
+                <div class="bg-accent-50 p-4 rounded-md">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-accent-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-accent-800">Payment Details</h3>
+                            <div class="mt-2 text-sm text-accent-700">
+                                <p><strong>Amount:</strong> KSh {{ payment.amount|intcomma }}</p>
+                                <p><strong>Method:</strong> {{ payment.get_payment_method_display }}</p>
+                                {% if payment.tenant %}
+                                <p><strong>Tenant:</strong> {{ payment.tenant.name }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6">
+                <a href="{% url 'payments:payment_detail' payment.pk %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                    Mark as Completed
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
