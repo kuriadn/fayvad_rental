@@ -6,9 +6,9 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'maintenance:maintenance_request_list' %}" class="text-gray-700 hover:text-accent-900">Maintenance</a></li>
+        <li><a href="{% url 'maintenance:maintenance_request_list' %}" class="text-gray-700 hover:text-blue-900">Maintenance</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">{{ maintenance_request.request_number }}</span></li>
     </ol>
@@ -24,7 +24,7 @@
             <p class="mt-1 text-sm text-gray-600">{{ maintenance_request.request_number }}</p>
         </div>
         <div class="flex space-x-3">
-            <a href="{% url 'maintenance:maintenance_request_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800">
+            <a href="{% url 'maintenance:maintenance_request_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-primary-500 hover:bg-primary-600 text-white">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
@@ -37,7 +37,7 @@
     <div class="flex space-x-3">
         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
             {% if maintenance_request.status == 'pending' %}bg-yellow-100 text-yellow-800
-            {% elif maintenance_request.status == 'scheduled' %}bg-accent-100 text-accent-800
+            {% elif maintenance_request.status == 'scheduled' %}bg-accent-100 text-blue-800
             {% elif maintenance_request.status == 'in_progress' %}bg-purple-100 text-purple-800
             {% elif maintenance_request.status == 'completed' %}bg-green-100 text-green-800
             {% elif maintenance_request.status == 'cancelled' %}bg-red-100 text-red-800
@@ -53,1033 +53,166 @@
         </span>
     </div>
 
-    <!-- Workflow Actions Strip -->
-    <div class="bg-white shadow rounded-lg overflow-hidden mb-6">
-        <div class="bg-gradient-to-r from-accent-50 to-blue-50 px-6 py-4 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="flex-shrink-0">
-                        <svg class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Maintenance Workflow</h3>
-                        <p class="text-sm text-gray-600">Manage request status, assign technicians, and track progress</p>
-                    </div>
-                </div>
-                <div id="workflow-status" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold">
-                    <!-- Status will be loaded via JavaScript -->
-                </div>
-            </div>
+    <!-- Actions Section - Simplified -->
+    {% if user.is_staff or user.is_superuser %}
+    <div class="bg-white shadow-sm rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Actions</h3>
         </div>
-
         <div class="px-6 py-4">
-            <!-- Available Actions -->
-            <div class="mb-6">
-                <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                    <svg class="w-4 h-4 mr-2 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                    Available Actions
-                </h4>
-                <div id="workflow-actions" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div class="text-sm text-gray-500 col-span-full text-center py-4">Loading available actions...</div>
-                </div>
-            </div>
-
-            <!-- Workflow Timeline -->
-            <div>
-                <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                    <svg class="w-4 h-4 mr-2 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Activity Timeline
-                </h4>
-                <div id="workflow-history" class="space-y-3 max-h-64 overflow-y-auto">
-                    <div class="text-sm text-gray-500 text-center py-4">Loading timeline...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Main Details -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Request Information -->
-            <div class="bg-white shadow-sm rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Request Details</h3>
-                </div>
-                <div class="px-6 py-4">
-                    <dl class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Tenant</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.tenant.name }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Room</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.room.room_number }} - {{ maintenance_request.room.location.name }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Requested By</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.created_by.get_full_name }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Requested Date</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.requested_date|date:"M d, Y g:i A" }}</dd>
-                        </div>
-                        {% if maintenance_request.scheduled_date %}
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Scheduled Date</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.scheduled_date|date:"M d, Y g:i A" }}</dd>
-                        </div>
-                        {% endif %}
-                        {% if maintenance_request.completed_date %}
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Completed Date</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.completed_date|date:"M d, Y g:i A" }}</dd>
-                        </div>
-                        {% endif %}
-                        {% if maintenance_request.estimated_cost %}
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Estimated Cost</dt>
-                            <dd class="mt-1 text-sm text-gray-900">KES {{ maintenance_request.estimated_cost|floatformat:2|intcomma }}</dd>
-                        </div>
-                        {% endif %}
-                        {% if maintenance_request.actual_cost %}
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Actual Cost</dt>
-                            <dd class="mt-1 text-sm text-gray-900">KES {{ maintenance_request.actual_cost|floatformat:2|intcomma }}</dd>
-                        </div>
-                        {% endif %}
-                    </dl>
-                </div>
-            </div>
-
-            <!-- Description -->
-            <div class="bg-white shadow-sm rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Description</h3>
-                </div>
-                <div class="px-6 py-4">
-                    <p class="text-sm text-gray-700 whitespace-pre-line">{{ maintenance_request.description }}</p>
-                </div>
-            </div>
-
-            <!-- Notes/Comments (if any) -->
-            {% if maintenance_request.notes %}
-            <div class="bg-white shadow-sm rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Additional Notes</h3>
-                </div>
-                <div class="px-6 py-4">
-                    <p class="text-sm text-gray-700 whitespace-pre-line">{{ maintenance_request.notes }}</p>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Sidebar -->
-        <div class="space-y-6">
-            <!-- Photos -->
-            {% if maintenance_request.photo_urls %}
-            <div class="bg-white shadow-sm rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Photos</h3>
-                </div>
-                <div class="px-6 py-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        {% for photo_url in maintenance_request.photo_urls %}
-                        <div class="aspect-square">
-                            <img src="{{ photo_url }}" alt="Maintenance photo" class="w-full h-full object-cover rounded-lg border">
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Documents -->
-            {% if maintenance_request.document_urls %}
-            <div class="bg-white shadow-sm rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Documents</h3>
-                </div>
-                <div class="px-6 py-4">
-                    <div class="space-y-2">
-                        {% for document_url in maintenance_request.document_urls %}
-                        <a href="{{ document_url }}" target="_blank" class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                            <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {% if maintenance_request.status == 'pending' %}
+                <form method="post" action="{% url 'core_services:workflow_transition' 'maintenance' maintenance_request.id %}" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="new_status" value="in_progress">
+                    <input type="hidden" name="notes" value="Started work on maintenance request">
+                    <button type="submit" class="group relative bg-white border-2 border-blue-200 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 active:bg-blue-100 w-full">
+                        <div class="flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l.707.707A1 1 0 0012.414 11H15m2 0h1.586a1 1 0 01.707.293l.707.707A1 1 0 0020.414 12H21"></path>
                             </svg>
-                            <div class="text-sm text-gray-900">Document {{ forloop.counter }}</div>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Escalation History -->
-            {% if escalation_history %}
-            <div class="bg-white shadow-sm rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Escalation History</h3>
-                </div>
-                <div class="px-6 py-4">
-                    <div class="space-y-3">
-                        {% for escalation in escalation_history %}
-                        <div class="flex items-start space-x-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <div class="flex-shrink-0">
-                                <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between">
-                                    <h4 class="text-sm font-medium text-red-800">{{ escalation.title }}</h4>
-                                    <span class="text-xs text-red-600">{{ escalation.timestamp|date:"M d, Y g:i A" }}</span>
-                                </div>
-                                <p class="text-sm text-red-700 mt-1">{{ escalation.message }}</p>
-                                {% if escalation.reason %}
-                                <p class="text-xs text-red-600 mt-2 italic">Reason: {{ escalation.reason }}</p>
-                                {% endif %}
-                            </div>
                         </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Workflow Management -->
-            {% load static %}
-            <div id="workflow-section" class="bg-white shadow-sm rounded-lg overflow-hidden">
-                <!-- Header with Status -->
-                <div class="bg-gradient-to-r from-accent-50 to-primary-50 px-6 py-4 border-b border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div class="flex-shrink-0">
-                                <svg class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900">Maintenance Workflow</h3>
-                                <p class="text-sm text-gray-600">Track progress and take actions</p>
-                            </div>
+                        <div class="text-sm font-semibold text-blue-900 text-center group-hover:text-blue-800">Start Work</div>
+                    </button>
+                </form>
+                <form method="post" action="{% url 'core_services:workflow_transition' 'maintenance' maintenance_request.id %}" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="new_status" value="cancelled">
+                    <input type="hidden" name="notes" value="Request cancelled">
+                    <button type="submit" class="group relative bg-white border-2 border-blue-200 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 active:bg-blue-100 w-full">
+                        <div class="flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
                         </div>
-                        <div id="current-status" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold
-                            {% if maintenance_request.status == 'pending' %}bg-yellow-100 text-yellow-800 border border-yellow-200
-                            {% elif maintenance_request.status == 'in_progress' %}bg-blue-100 text-blue-800 border border-blue-200
-                            {% elif maintenance_request.status == 'completed' %}bg-green-100 text-green-800 border border-green-200
-                            {% elif maintenance_request.status == 'cancelled' %}bg-red-100 text-red-800 border border-red-200
-                            {% else %}bg-gray-100 text-gray-800 border border-gray-200{% endif %}">
-                            <span class="w-2 h-2 rounded-full mr-2
-                                {% if maintenance_request.status == 'pending' %}bg-yellow-500
-                                {% elif maintenance_request.status == 'in_progress' %}bg-blue-500
-                                {% elif maintenance_request.status == 'completed' %}bg-green-500
-                                {% elif maintenance_request.status == 'cancelled' %}bg-red-500
-                                {% else %}bg-gray-500{% endif %}"></span>
-                            {{ maintenance_request.get_status_display|title }}
+                        <div class="text-sm font-semibold text-blue-900 text-center group-hover:text-blue-800">Cancel Request</div>
+                    </button>
+                </form>
+                {% elif maintenance_request.status == 'in_progress' %}
+                <form method="post" action="{% url 'core_services:workflow_transition' 'maintenance' maintenance_request.id %}" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="new_status" value="completed">
+                    <input type="hidden" name="notes" value="Request completed">
+                    <button type="submit" class="group relative bg-white border-2 border-blue-200 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 active:bg-blue-100 w-full">
+                        <div class="flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
                         </div>
-                    </div>
-                </div>
-
-                <div class="px-6 py-4">
-                    <!-- Progress & SLA Status -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <!-- SLA Status -->
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-medium text-gray-600">SLA Status</span>
-                                <span id="sla-status" class="text-sm font-semibold text-gray-900">Loading...</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div id="sla-progress" class="bg-accent-600 h-2 rounded-full transition-all duration-300"></div>
-                            </div>
+                        <div class="text-sm font-semibold text-blue-900 text-center group-hover:text-blue-800">Complete Request</div>
+                    </button>
+                </form>
+                <form method="post" action="{% url 'core_services:workflow_transition' 'maintenance' maintenance_request.id %}" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="new_status" value="cancelled">
+                    <input type="hidden" name="notes" value="Request cancelled">
+                    <button type="submit" class="group relative bg-white border-2 border-blue-200 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 active:bg-blue-100 w-full">
+                        <div class="flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
                         </div>
-
-                        <!-- Priority -->
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-medium text-gray-600">Priority</span>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    {% if maintenance_request.priority == 'urgent' %}bg-red-100 text-red-800
-                                    {% elif maintenance_request.priority == 'high' %}bg-orange-100 text-orange-800
-                                    {% elif maintenance_request.priority == 'medium' %}bg-yellow-100 text-yellow-800
-                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                    {{ maintenance_request.get_priority_display }}
-                                </span>
-                            </div>
-                            <div class="text-sm text-gray-600">
-                                {% if maintenance_request.scheduled_date %}
-                                    Scheduled: {{ maintenance_request.scheduled_date|date:"M d, Y g:i A" }}
-                                {% else %}
-                                    Not scheduled
-                                {% endif %}
-                            </div>
-                        </div>
-
-                    <!-- Days Active -->
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-medium text-gray-600">Days Active</span>
-                            <span class="text-sm font-semibold text-gray-900">{{ maintenance_request.days_pending }}</span>
-                        </div>
-                        {% if maintenance_request.escalated %}
-                        <div class="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
-                            <strong>Escalated</strong> - Priority increased due to SLA breach
-                        </div>
-                        {% endif %}
-                    </div>
-                            <div class="text-sm text-gray-600">
-                                Created {{ maintenance_request.requested_date|timesince }}
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Ensure CSRF token is available for AJAX requests -->
-            <form style="display: none;">
-                {% csrf_token %}
-            </form>
-
-            <script>
-                // Load workflow status when page loads
-                document.addEventListener('DOMContentLoaded', function() {
-                    loadWorkflowStatus();
-                });
-
-                function loadWorkflowStatus() {
-                    const instanceId = '{{ maintenance_request.id }}';
-                    console.log('Loading workflow status for maintenance request:', instanceId);
-
-                    // Load workflow status
-                    fetch(`/api/workflows/maintenance/${instanceId}/status/`, {
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                            'Content-Type': 'application/json',
-                        }
-                    })
-                    .then(response => {
-                        console.log('Workflow API response status:', response.status);
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Workflow API response data:', data);
-                        if (data.success) {
-                            updateWorkflowUI(data.data);
-                        } else {
-                            console.error('Failed to load workflow status:', data.error);
-                            showWorkflowError('Failed to load workflow data: ' + (data.error || 'Unknown error'));
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading workflow status:', error);
-                        showWorkflowError('Error loading workflow: ' + error.message);
-                    });
-                }
-
-                function showWorkflowError(message) {
-                    const actionsElement = document.getElementById('workflow-actions');
-                    if (actionsElement) {
-                        // Show error but also provide fallback actions for managers
-                        {% if user.is_staff %}
-                        actionsElement.innerHTML = `
-                            <div class="col-span-full text-center py-4 mb-4">
-                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                    <div class="text-yellow-800 text-sm">
-                                        <strong>Workflow Loading Issue:</strong> ${message}<br>
-                                        <strong>Fallback:</strong> Using default manager actions
-                                    </div>
-                                </div>
-                            </div>
-                            <button onclick="performWorkflowAction('assign_technician')"
-                                    class="group relative bg-white border-2 border-accent-200 rounded-lg p-4 hover:border-accent-500 hover:bg-accent-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 active:bg-accent-100">
-                                <div class="flex items-center justify-center mb-2">
-                                    <div class="w-6 h-6 text-blue-600"></div>
-                                </div>
-                                <div class="text-sm font-semibold text-accent-900 text-center group-hover:text-accent-800">Assign Technician</div>
-                            </button>
-                            <button onclick="performWorkflowAction('complete_request')"
-                                    class="group relative bg-white border-2 border-accent-200 rounded-lg p-4 hover:border-accent-500 hover:bg-accent-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 active:bg-accent-100">
-                                <div class="flex items-center justify-center mb-2">
-                                    <div class="w-6 h-6 text-green-600"></div>
-                                </div>
-                                <div class="text-sm font-semibold text-accent-900 text-center group-hover:text-accent-800">Complete Request</div>
-                            </button>
-                            <button onclick="performWorkflowAction('cancel_request')"
-                                    class="group relative bg-white border-2 border-accent-200 rounded-lg p-4 hover:border-accent-500 hover:bg-accent-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 active:bg-accent-100">
-                                <div class="flex items-center justify-center mb-2">
-                                    <div class="w-6 h-6 text-red-600"></div>
-                                </div>
-                                <div class="text-sm font-semibold text-accent-900 text-center group-hover:text-accent-800">Cancel Request</div>
-                            </button>
-                        `;
-                        {% else %}
-                        actionsElement.innerHTML = `
-                            <div class="col-span-full text-center py-4">
-                                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                                    <div class="text-red-800 text-sm">
-                                        <strong>Workflow Error:</strong> ${message}
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        {% endif %}
-                    }
-                }
-
-                function updateWorkflowUI(workflowData) {
-                    // Update workflow status badge in header
-                    const statusElement = document.getElementById('workflow-status');
-                    const currentState = workflowData.current_state || 'unknown';
-                    let statusClass = 'bg-gray-100 text-gray-800';
-                    let statusText = currentState.replace('_', ' ').toUpperCase();
-
-                    // Set appropriate colors based on status
-                    if (currentState === 'completed') {
-                        statusClass = 'bg-green-100 text-green-800';
-                        statusText = 'COMPLETED';
-                    } else if (currentState === 'cancelled') {
-                        statusClass = 'bg-red-100 text-red-800';
-                        statusText = 'CANCELLED';
-                    } else if (currentState === 'in_progress') {
-                        statusClass = 'bg-purple-100 text-purple-800';
-                        statusText = 'IN PROGRESS';
-                    } else if (currentState === 'scheduled') {
-                        statusClass = 'bg-accent-100 text-accent-800';
-                        statusText = 'SCHEDULED';
-                    } else if (currentState === 'pending') {
-                        statusClass = 'bg-yellow-100 text-yellow-800';
-                        statusText = 'PENDING';
-                    }
-
-                    statusElement.className = `inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${statusClass}`;
-                    statusElement.innerHTML = `
-                        <span class="w-2 h-2 rounded-full mr-2
-                            ${currentState === 'completed' ? 'bg-green-500' :
-                              currentState === 'cancelled' ? 'bg-red-500' :
-                              currentState === 'in_progress' ? 'bg-purple-500' :
-                              currentState === 'scheduled' ? 'bg-accent-500' :
-                              'bg-yellow-500'}"></span>
-                        ${statusText}
-                    `;
-
-                    // Update SLA status and progress bar
-                    const slaElement = document.getElementById('sla-status');
-                    const slaProgress = document.getElementById('sla-progress');
-                    const slaStatus = workflowData.sla_status;
-
-                    if (slaStatus) {
-                        let slaText = slaStatus.status.replace('_', ' ').toUpperCase();
-                        let progressPercent = 0;
-
-                        if (slaStatus.status === 'overdue') {
-                            slaText += ` (${slaStatus.days_overdue} days overdue)`;
-                            slaElement.className = 'text-sm font-semibold text-red-600';
-                            slaProgress.className = 'bg-red-600 h-2 rounded-full transition-all duration-300';
-                            progressPercent = 100; // Show full bar for overdue
-                        } else if (slaStatus.status === 'on_track') {
-                            slaText += ` (${slaStatus.days_remaining} days left)`;
-                            slaElement.className = 'text-sm font-semibold text-green-600';
-                            slaProgress.className = 'bg-green-600 h-2 rounded-full transition-all duration-300';
-                            // Calculate progress based on days remaining
-                            const totalDays = slaStatus.sla_days || 7;
-                            const remaining = Math.max(0, slaStatus.days_remaining || 0);
-                            progressPercent = Math.min(100, ((totalDays - remaining) / totalDays) * 100);
-                        } else if (slaStatus.status === 'completed') {
-                            slaText = 'COMPLETED';
-                            slaElement.className = 'text-sm font-semibold text-green-600';
-                            slaProgress.className = 'bg-green-600 h-2 rounded-full transition-all duration-300';
-                            progressPercent = 100;
-                        } else {
-                            slaElement.className = 'text-sm font-semibold text-gray-900';
-                            slaProgress.className = 'bg-gray-600 h-2 rounded-full transition-all duration-300';
-                            progressPercent = 50;
-                        }
-
-                        slaElement.textContent = slaText;
-                        slaProgress.style.width = `${progressPercent}%`;
-                    }
-
-                    // Update available actions
-                    const actionsElement = document.getElementById('workflow-actions');
-                    const availableEvents = workflowData.available_events || [];
-                    console.log('Available workflow events:', availableEvents);
-
-                    if (availableEvents.length > 0) {
-                        let actionsHtml = '';
-                        availableEvents.forEach(event => {
-                            const buttonClass = getActionButtonClass(event);
-                            const buttonIcon = getActionButtonIcon(event);
-                            const buttonText = formatActionName(event);
-
-                            actionsHtml += `
-                                <button onclick="performWorkflowAction('${event}')"
-                                        class="group relative bg-white border-2 border-accent-200 rounded-lg p-4 hover:border-accent-500 hover:bg-accent-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 active:bg-accent-100">
-                                    <div class="flex items-center justify-center mb-2">
-                                        <div class="${buttonIcon}"></div>
-                                    </div>
-                                    <div class="text-sm font-semibold text-accent-900 text-center group-hover:text-accent-800">${buttonText}</div>
-                                </button>
-                            `;
-                        });
-                        actionsElement.innerHTML = actionsHtml;
-                    } else {
-                        actionsElement.innerHTML = `
-                            <div class="col-span-full text-center py-8">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <p class="mt-2 text-sm text-gray-500">All available actions completed</p>
-                            </div>
-                        `;
-                    }
-
-                    // Update workflow timeline
-                    updateWorkflowTimeline(workflowData.workflow_history || []);
-                }
-
-                function getActionButtonIcon(event) {
-                    const iconClasses = 'w-6 h-6';
-
-                    switch(event) {
-                        case 'assign_technician':
-                            return `${iconClasses} text-blue-600`;
-                        case 'complete_request':
-                            return `${iconClasses} text-green-600`;
-                        case 'cancel_request':
-                            return `${iconClasses} text-red-600`;
-                        case 'escalate_priority':
-                            return `${iconClasses} text-orange-600`;
-                        case 'schedule_maintenance':
-                            return `${iconClasses} text-purple-600`;
-                        case 'start_work':
-                            return `${iconClasses} text-indigo-600`;
-                        case 'reopen_request':
-                            return `${iconClasses} text-yellow-600`;
-                        default:
-                            return `${iconClasses} text-gray-600`;
-                    }
-                }
-
-                function updateWorkflowTimeline(history) {
-                    const historyElement = document.getElementById('workflow-history');
-
-                    if (history && history.length > 0) {
-                        let timelineHtml = '';
-
-                        // Sort by timestamp (most recent first)
-                        history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-                        history.forEach((item, index) => {
-                            const timestamp = new Date(item.timestamp);
-                            const timeAgo = getTimeAgo(timestamp);
-                            const isRecent = index === 0;
-
-                            timelineHtml += `
-                                <div class="flex items-start space-x-3 ${isRecent ? 'bg-accent-50 p-3 rounded-lg border border-accent-200' : ''}">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-8 h-8 rounded-full ${getTimelineIconBg(item.event_type)} flex items-center justify-center">
-                                            ${getTimelineIcon(item.event_type)}
-                                        </div>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex items-center justify-between">
-                                            <p class="text-sm font-medium text-gray-900">
-                                                ${formatEventName(item.event_name || item.event_type)}
-                                            </p>
-                                            <p class="text-xs text-gray-500">${timeAgo}</p>
-                                        </div>
-                                        <p class="text-sm text-gray-600">by ${item.user}</p>
-                                        ${item.notes ? `<p class="text-xs text-gray-500 mt-1">${item.notes}</p>` : ''}
-                                        ${item.old_state && item.new_state ? `<p class="text-xs text-accent-600 mt-1">${item.old_state} → ${item.new_state}</p>` : ''}
-                                    </div>
-                                </div>
-                            `;
-                        });
-
-                        historyElement.innerHTML = timelineHtml;
-                    } else {
-                        historyElement.innerHTML = `
-                            <div class="text-center py-8">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <p class="mt-2 text-sm text-gray-500">No activity yet</p>
-                            </div>
-                        `;
-                    }
-                }
-
-                function getTimelineIconBg(eventType) {
-                    switch(eventType) {
-                        case 'transition': return 'bg-blue-100';
-                        case 'validation': return 'bg-green-100';
-                        case 'notification': return 'bg-purple-100';
-                        case 'error': return 'bg-red-100';
-                        default: return 'bg-gray-100';
-                    }
-                }
-
-                function getTimelineIcon(eventType) {
-                    const iconClasses = 'w-4 h-4';
-                    switch(eventType) {
-                        case 'transition':
-                            return `<svg class="${iconClasses} text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>`;
-                        case 'validation':
-                            return `<svg class="${iconClasses} text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
-                        case 'notification':
-                            return `<svg class="${iconClasses} text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5v-5a2 2 0 00-2-2h-3m-5 8h5v-5a2 2 0 00-2-2h-3m-5 8h5v-5a2 2 0 00-2-2h-3"/></svg>`;
-                        case 'error':
-                            return `<svg class="${iconClasses} text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>`;
-                        default:
-                            return `<svg class="${iconClasses} text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
-                    }
-                }
-
-                function formatEventName(eventName) {
-                    return eventName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                }
-
-                function getTimeAgo(date) {
-                    const now = new Date();
-                    const diffInSeconds = Math.floor((now - date) / 1000);
-
-                    if (diffInSeconds < 60) return 'Just now';
-                    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-                    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-                    return `${Math.floor(diffInSeconds / 86400)}d ago`;
-                }
-
-                function getActionButtonClass(event) {
-                    switch(event) {
-                        case 'complete_request':
-                            return 'text-white bg-green-600 hover:bg-green-700';
-                        case 'cancel_request':
-                            return 'text-white bg-red-600 hover:bg-red-700';
-                        case 'escalate_priority':
-                            return 'text-white bg-orange-600 hover:bg-orange-700';
-                        default:
-                            return 'text-white bg-accent hover:bg-accent-800';
-                    }
-                }
-
-                function formatActionName(event) {
-                    return event.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                }
-
-                function performWorkflowAction(event) {
-                    // Show the appropriate modal for the action
-                    showWorkflowActionModal(event);
-                }
-
-                function showWorkflowActionModal(action) {
-                    const modal = document.getElementById('workflow-action-modal');
-                    const modalTitle = document.getElementById('workflow-modal-title');
-                    const modalContent = document.getElementById('workflow-modal-content');
-
-                    // Configure modal based on action
-                    if (action === 'assign_technician') {
-                        modalTitle.textContent = 'Assign Technician';
-                        modalContent.innerHTML = `
-                            <form id="assign-technician-form" class="space-y-6">
-                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <div class="flex items-start">
-                                        <div class="flex-shrink-0">
-                                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                        </div>
-                                        <div class="ml-3">
-                                            <h4 class="text-sm font-medium text-blue-800">Assign Technician</h4>
-                                            <p class="text-sm text-blue-700 mt-1">Assign this maintenance request to a qualified technician for resolution.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label for="technician_name" class="block text-sm font-semibold text-gray-900 mb-2">
-                                        Technician Name <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="text" id="technician_name" name="technician_name" required
-                                           class="block w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-accent-500 focus:ring-accent-500 transition-colors"
-                                           placeholder="Enter full name of assigned technician">
-                                    <p class="mt-1 text-sm text-gray-600">The technician will be notified and assigned to this maintenance request.</p>
-                                </div>
-                            </form>
-                        `;
-                    } else if (action === 'complete_request') {
-                        modalTitle.textContent = 'Complete Maintenance Request';
-                        modalContent.innerHTML = `
-                            <form id="complete-request-form" class="space-y-6">
-                                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                                    <div class="flex items-start">
-                                        <div class="flex-shrink-0">
-                                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                        </div>
-                                        <div class="ml-3">
-                                            <h4 class="text-sm font-medium text-green-800">Mark as Completed</h4>
-                                            <p class="text-sm text-green-700 mt-1">Confirm that this maintenance request has been fully resolved and closed.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label for="resolution_notes" class="block text-sm font-semibold text-gray-900 mb-2">
-                                        Resolution Notes <span class="text-red-500">*</span>
-                                    </label>
-                                    <textarea id="resolution_notes" name="resolution_notes" required rows="4"
-                                              class="block w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-accent-500 focus:ring-accent-500 transition-colors resize-none"
-                                              placeholder="Describe how the maintenance request was resolved, including any work performed"></textarea>
-                                    <p class="mt-1 text-sm text-gray-600">Provide detailed information about the resolution for future reference.</p>
-                                </div>
-
-                                <div>
-                                    <label for="actual_cost" class="block text-sm font-semibold text-gray-900 mb-2">
-                                        Actual Cost (Optional)
-                                    </label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-3 text-gray-500">KSh</span>
-                                        <input type="number" id="actual_cost" name="actual_cost" step="0.01" min="0"
-                                               class="block w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-accent-500 focus:ring-accent-500 transition-colors"
-                                               placeholder="0.00">
-                                    </div>
-                                    <p class="mt-1 text-sm text-gray-600">Enter the total cost incurred for materials, labor, or other expenses.</p>
-                                </div>
-                            </form>
-                        `;
-                    } else if (action === 'cancel_request') {
-                        modalTitle.textContent = 'Cancel Maintenance Request';
-                        modalContent.innerHTML = `
-                            <form id="cancel-request-form" class="space-y-4">
-                                <div>
-                                    <label for="reason" class="block text-sm font-medium text-gray-700">Cancellation Reason <span class="text-red-500">*</span></label>
-                                    <textarea id="reason" name="reason" required rows="3"
-                                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                              placeholder="Explain why this maintenance request is being cancelled"></textarea>
-                                </div>
-                            </form>
-                        `;
-                    } else if (action === 'reopen_request') {
-                        modalTitle.textContent = 'Reopen Maintenance Request';
-                        modalContent.innerHTML = `
-                            <form id="reopen-request-form" class="space-y-4">
-                                <div>
-                                    <label for="reason" class="block text-sm font-medium text-gray-700">Reason for Reopening (Optional)</label>
-                                    <textarea id="reason" name="reason" rows="3"
-                                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                              placeholder="Explain why this request needs to be reopened"></textarea>
-                                </div>
-                            </form>
-                        `;
-                    } else if (action === 'schedule_maintenance') {
-                        modalTitle.textContent = 'Schedule Maintenance';
-                        modalContent.innerHTML = `
-                            <form id="schedule-maintenance-form" class="space-y-4">
-                                <div>
-                                    <label for="scheduled_date" class="block text-sm font-medium text-gray-700">Scheduled Date & Time <span class="text-red-500">*</span></label>
-                                    <input type="datetime-local" id="scheduled_date" name="scheduled_date" required
-                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500">
-                                </div>
-                            </form>
-                        `;
-                    } else if (action === 'start_work') {
-                        modalTitle.textContent = 'Start Work';
-                        modalContent.innerHTML = `
-                            <form id="start-work-form" class="space-y-4">
-                                <div class="bg-blue-50 p-4 rounded-md">
-                                    <p class="text-sm text-blue-800">
-                                        Confirm that work has begun on this maintenance request.
-                                    </p>
-                                </div>
-                                <div>
-                                    <label for="work_notes" class="block text-sm font-medium text-gray-700">Work Notes (Optional)</label>
-                                    <textarea id="work_notes" name="work_notes" rows="3"
-                                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                              placeholder="Add any notes about starting work"></textarea>
-                                </div>
-                            </form>
-                        `;
-                    } else if (action === 'escalate_priority') {
-                        modalTitle.textContent = 'Escalate Priority';
-                        modalContent.innerHTML = `
-                            <form id="escalate-priority-form" class="space-y-4">
-                                <div>
-                                    <label for="new_priority" class="block text-sm font-medium text-gray-700">New Priority <span class="text-red-500">*</span></label>
-                                    <select id="new_priority" name="new_priority" required
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500">
-                                        <option value="">Select priority</option>
-                                        <option value="high">High</option>
-                                        <option value="urgent">Urgent</option>
-                                    </select>
-                                </div>
-                            </form>
-                        `;
-                    }
-
-                    // Show modal
-                    modal.classList.remove('hidden');
-
-                    // Attach event handlers after modal content is created
-                    setTimeout(() => {
-                        // Modal event handlers
-                        const closeBtn = document.getElementById('close-workflow-modal');
-                        const cancelBtn = document.getElementById('cancel-workflow-action');
-                        const submitBtn = document.getElementById('submit-workflow-action');
-
-                        if (closeBtn) closeBtn.addEventListener('click', closeWorkflowModal);
-                        if (cancelBtn) cancelBtn.addEventListener('click', closeWorkflowModal);
-                        if (submitBtn) submitBtn.addEventListener('click', submitWorkflowAction);
-
-                        // Close modal when clicking outside
-                        modal.addEventListener('click', function(e) {
-                            if (e.target === this) {
-                                closeWorkflowModal();
-                            }
-                        });
-
-                        // Close modal with Escape key
-                        document.addEventListener('keydown', function(e) {
-                            if (e.key === 'Escape') {
-                                if (!modal.classList.contains('hidden')) {
-                                    closeWorkflowModal();
-                                }
-                            }
-                        });
-
-                        // Focus first input
-                        const firstInput = modalContent.querySelector('input, textarea, select');
-                        if (firstInput) firstInput.focus();
-                    }, 100);
-                }
-
-                    // Perform actual workflow transition via API
-                    fetch(`/api/workflows/maintenance/${instanceId}/action/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            action: event,
-                            data: actionData
-                        })
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            // Show success message
-                            alert('Action completed successfully: ' + data.message);
-
-                            // Reload the page to show updated workflow status
-                            location.reload();
-                        } else {
-                            alert('Action failed: ' + (data.error || 'Unknown error'));
-                            button.textContent = originalText;
-                            button.disabled = false;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error performing workflow action:', error);
-                        alert('An error occurred while performing the action: ' + error.message);
-                        button.textContent = originalText;
-                        button.disabled = false;
-                    });
-                }
-
-                // Toggle workflow history
-                document.getElementById('toggle-history').addEventListener('click', function() {
-                    const historyElement = document.getElementById('workflow-history');
-                    const isHidden = historyElement.classList.contains('hidden');
-
-                    if (isHidden) {
-                        loadWorkflowHistory();
-                        historyElement.classList.remove('hidden');
-                        this.textContent = 'Hide Workflow History';
-                    } else {
-                        historyElement.classList.add('hidden');
-                        this.textContent = 'Show Workflow History';
-                    }
-                });
-
-                function loadWorkflowHistory() {
-                    const instanceId = '{{ maintenance_request.id }}';
-                    const historyElement = document.getElementById('workflow-history');
-
-                    fetch(`/api/workflows/maintenance/${instanceId}/history/`, {
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success && data.data.length > 0) {
-                            let historyHtml = '';
-                            data.data.forEach(item => {
-                                const timestamp = new Date(item.timestamp).toLocaleString();
-                                historyHtml += `
-                                    <div class="flex items-start space-x-3 p-2 bg-gray-50 rounded">
-                                        <div class="flex-1">
-                                            <div class="text-sm font-medium text-gray-900">
-                                                ${item.event_name.replace(/_/g, ' ')}
-                                            </div>
-                                            <div class="text-xs text-gray-500">
-                                                ${item.user} • ${timestamp}
-                                            </div>
-                                            ${item.notes ? `<div class="text-xs text-gray-600 mt-1">${item.notes}</div>` : ''}
-                                        </div>
-                                    </div>
-                                `;
-                            });
-                            historyElement.innerHTML = historyHtml;
-                        } else {
-                            historyElement.innerHTML = '<div class="text-sm text-gray-500">No workflow history available</div>';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading history:', error);
-                        historyElement.innerHTML = '<div class="text-sm text-red-600">Error loading history</div>';
-                    });
-                }
-
-
-                function closeWorkflowModal() {
-                    document.getElementById('workflow-action-modal').classList.add('hidden');
-                }
-
-                function submitWorkflowAction() {
-                    const modal = document.getElementById('workflow-action-modal');
-                    const modalContent = document.getElementById('workflow-modal-content');
-                    const form = modalContent.querySelector('form');
-
-                    if (!form) return;
-
-                    // Validate form
-                    if (!form.checkValidity()) {
-                        form.reportValidity();
-                        return;
-                    }
-
-                    // Show loading state
-                    const submitBtn = document.getElementById('submit-workflow-action');
-                    const originalText = submitBtn.textContent;
-                    submitBtn.textContent = 'Processing...';
-                    submitBtn.disabled = true;
-
-                    // Collect form data
-                    const formData = new FormData(form);
-                    const actionData = {};
-                    for (let [key, value] of formData.entries()) {
-                        if (value.trim()) {
-                            actionData[key] = key === 'actual_cost' || key === 'scheduled_date' ? value : value.trim();
-                        }
-                    }
-
-                    // Determine action type from form ID
-                    const action = form.id.replace('-form', '').replace(/-/g, '_');
-
-                    const instanceId = '{{ maintenance_request.id }}';
-
-                    // Perform actual workflow transition via API
-                    fetch(`/api/workflows/maintenance/${instanceId}/action/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            action: action,
-                            data: actionData
-                        })
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(err => { throw new Error(err.error || `HTTP ${response.status}: ${response.statusText}`); });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            // Close modal and reload page
-                            closeWorkflowModal();
-                            location.reload();
-                        } else {
-                            alert('Action failed: ' + (data.error || 'Unknown error'));
-                            submitBtn.textContent = originalText;
-                            submitBtn.disabled = false;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error performing workflow action:', error);
-                        alert('An error occurred while performing the action: ' + error.message);
-                        submitBtn.textContent = originalText;
-                        submitBtn.disabled = false;
-                    });
-                }
-            </script>
-        </div>
-        </div>
-    </div>
-
-    <!-- Workflow Action Modal -->
-    <div id="workflow-action-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-20 mx-auto p-6 border w-full max-w-lg shadow-2xl rounded-xl bg-white">
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 id="workflow-modal-title" class="text-xl font-semibold text-gray-900">Workflow Action</h3>
-                        <p class="text-sm text-gray-600">Complete the required information</p>
-                    </div>
-                </div>
-                <button id="close-workflow-modal" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Modal Content -->
-            <div id="workflow-modal-content" class="mb-6">
-                <!-- Form content will be inserted here -->
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                <button id="cancel-workflow-action" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors">
-                    Cancel
-                </button>
-                <button id="submit-workflow-action" class="px-6 py-2.5 bg-accent text-white rounded-lg hover:bg-accent-800 font-medium transition-colors shadow-sm">
-                    <span class="flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Execute Action
-                    </span>
-                </button>
+                        <div class="text-sm font-semibold text-blue-900 text-center group-hover:text-blue-800">Cancel Request</div>
+                    </button>
+                </form>
+                {% endif %}
             </div>
         </div>
     </div>
+    {% endif %}
+
+    <!-- Request Details -->
+    <div class="bg-white shadow-sm rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Request Details</h3>
+        </div>
+        <div class="px-6 py-4">
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Tenant</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.tenant.name }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Room</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.room.room_number }} - {{ maintenance_request.room.location.name }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Requested By</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.created_by.get_full_name }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Requested Date</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.requested_date|date:"M d, Y g:i A" }}</dd>
+                </div>
+                {% if maintenance_request.scheduled_date %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Scheduled Date</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.scheduled_date|date:"M d, Y g:i A" }}</dd>
+                </div>
+                {% endif %}
+                {% if maintenance_request.completed_date %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Completed Date</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ maintenance_request.completed_date|date:"M d, Y g:i A" }}</dd>
+                </div>
+                {% endif %}
+                {% if maintenance_request.actual_cost %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Actual Cost</dt>
+                    <dd class="mt-1 text-sm text-gray-900">KES {{ maintenance_request.actual_cost|floatformat:2 }}</dd>
+                </div>
+                {% endif %}
+                {% if maintenance_request.estimated_cost %}
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Estimated Cost</dt>
+                    <dd class="mt-1 text-sm text-gray-900">KES {{ maintenance_request.estimated_cost|floatformat:2 }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </div>
+    </div>
+
+    <!-- Description -->
+    {% if maintenance_request.description %}
+    <div class="bg-white shadow-sm rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Description</h3>
+        </div>
+        <div class="px-6 py-4">
+            <p class="text-sm text-gray-700 whitespace-pre-line">{{ maintenance_request.description }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Photos -->
+    {% if maintenance_request.photo_urls %}
+    <div class="bg-white shadow-sm rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Photos</h3>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {% for photo_url in maintenance_request.photo_urls %}
+                <div class="aspect-square">
+                    <img src="{{ photo_url }}" alt="Maintenance photo {{ forloop.counter }}" 
+                         class="w-full h-full object-cover rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Additional Notes -->
+    {% if maintenance_request.notes %}
+    <div class="bg-white shadow-sm rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Additional Notes</h3>
+        </div>
+        <div class="px-6 py-4">
+            <p class="text-sm text-gray-700 whitespace-pre-line">{{ maintenance_request.notes }}</p>
+        </div>
+    </div>
+    {% endif %}
+
 {% endblock %}

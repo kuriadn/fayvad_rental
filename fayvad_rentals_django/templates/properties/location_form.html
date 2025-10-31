@@ -5,9 +5,9 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'properties:location_list' %}" class="text-gray-700 hover:text-accent-900">Locations</a></li>
+        <li><a href="{% url 'properties:location_list' %}" class="text-gray-700 hover:text-blue-900">Locations</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">{% if location %}Edit Location{% else %}Add Location{% endif %}</span></li>
     </ol>
@@ -36,21 +36,21 @@
 
     <!-- Success Alert with Link -->
     {% if created_location %}
-        <div class="mb-4 bg-accent-50 border-l-4 border-accent-400 p-4">
+        <div class="mb-4 bg-accent-50 border-l-4 border-blue-400 p-4">
             <div class="flex">
                 <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-accent-400" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                     </svg>
                 </div>
                 <div class="ml-3 flex-1">
-                    <p class="text-sm text-accent-700">
-                        Location created successfully! <a href="{% url 'properties:location_detail' created_location.pk %}" class="font-medium underline text-accent-700 hover:text-accent-900">View Location Details</a>
+                    <p class="text-sm text-blue-700">
+                        Location created successfully! <a href="{% url 'properties:location_detail' created_location.pk %}" class="font-medium underline text-blue-700 hover:text-blue-900">View Location Details</a>
                     </p>
                 </div>
                 <div class="ml-auto pl-3">
                     <div class="-mx-1.5 -my-1.5">
-                        <button type="button" onclick="this.parentElement.parentElement.parentElement.parentElement.style.display='none'" class="inline-flex bg-accent-50 rounded-md p-1.5 text-accent-500 hover:bg-accent-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-accent-50 focus:ring-accent">
+                        <button type="button" onclick="this.parentElement.parentElement.parentElement.parentElement.style.display='none'" class="inline-flex bg-accent-50 rounded-md p-1.5 text-blue-500 hover:bg-blue-700-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-accent-50 focus:ring-accent">
                             <span class="sr-only">Dismiss</span>
                             <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
@@ -160,7 +160,7 @@
                 <a href="{% url 'properties:location_list' %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
                     Cancel
                 </a>
-                <button type="submit" class="bg-accent text-white px-4 py-2 rounded-md hover:bg-accent">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
                     {% if location %}Update Location{% else %}Add Location{% endif %}
                 </button>
             </div>

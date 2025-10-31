@@ -6,9 +6,9 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'payments:payment_list' %}" class="text-gray-700 hover:text-accent-900">Payments</a></li>
+        <li><a href="{% url 'payments:payment_list' %}" class="text-gray-700 hover:text-blue-900">Payments</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">{{ tenant.name }}</span></li>
     </ol>
@@ -24,7 +24,7 @@
             <p class="mt-1 text-sm text-gray-600">{{ payment_count }} total payments</p>
         </div>
         <div class="flex space-x-3">
-            <a href="{% url 'payments:payment_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent">
+            <a href="{% url 'payments:payment_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                 </svg>
@@ -105,7 +105,7 @@
                     {% for payment in payments %}
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            <a href="{% url 'payments:payment_detail' payment.pk %}" class="text-accent-900 hover:text-accent-900">
+                            <a href="{% url 'payments:payment_detail' payment.pk %}" class="text-blue-900 hover:text-blue-900">
                                 {{ payment.payment_number }}
                             </a>
                         </td>
@@ -128,7 +128,7 @@
                             {{ payment.payment_date|date:"M d, Y" }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="{% url 'payments:payment_detail' payment.pk %}" class="text-accent-900 hover:text-accent-900">View</a>
+                            <a href="{% url 'payments:payment_detail' payment.pk %}" class="text-blue-900 hover:text-blue-900">View</a>
                         </td>
                     </tr>
                     {% empty %}

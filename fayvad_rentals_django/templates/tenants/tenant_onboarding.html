@@ -6,9 +6,9 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'tenants:tenant_list' %}" class="text-gray-700 hover:text-accent-900">Tenants</a></li>
+        <li><a href="{% url 'tenants:tenant_list' %}" class="text-gray-700 hover:text-blue-900">Tenants</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">Onboarding</span></li>
     </ol>
@@ -29,8 +29,8 @@
     <div class="mb-8">
         <div class="flex items-center justify-between">
             <div class="flex items-center">
-                <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center text-white font-semibold">1</div>
-                <span class="ml-3 text-sm font-medium text-accent-900">Personal Information</span>
+                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">1</div>
+                <span class="ml-3 text-sm font-medium text-blue-900">Personal Information</span>
             </div>
             <div class="flex-1 h-1 bg-gray-200 mx-4"></div>
             <div class="flex items-center">
@@ -142,7 +142,7 @@
                 <a href="{% url 'tenants:tenant_list' %}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400 transition duration-200">
                     Cancel
                 </a>
-                <button type="submit" class="bg-accent text-white px-6 py-2 rounded-md hover:bg-accent transition duration-200">
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition duration-200">
                     Continue to Next Step
                 </button>
             </div>
@@ -150,16 +150,16 @@
     </div>
 
     <!-- Help Section -->
-    <div class="mt-8 bg-accent-50 border border-accent-200 rounded-lg p-6">
+    <div class="mt-8 bg-accent-50 border border-blue-200 rounded-lg p-6">
         <div class="flex items-start">
             <div class="flex-shrink-0">
-                <svg class="w-6 h-6 text-accent-400" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                 </svg>
             </div>
             <div class="ml-3">
-                <h4 class="text-sm font-medium text-accent-800">Need Help?</h4>
-                <p class="mt-1 text-sm text-accent-700">
+                <h4 class="text-sm font-medium text-blue-800">Need Help?</h4>
+                <p class="mt-1 text-sm text-blue-700">
                     If you have any questions about the onboarding process, please contact our support team at
                     <a href="mailto:support@fayvad.com" class="font-medium underline">support@fayvad.com</a> or call us at (555) 123-4567.
                 </p>

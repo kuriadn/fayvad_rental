@@ -5,17 +5,17 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'properties:location_list' %}" class="text-gray-700 hover:text-accent-900">Locations</a></li>
+        <li><a href="{% url 'properties:location_list' %}" class="text-gray-700 hover:text-blue-900">Locations</a></li>
         <li><span class="text-gray-500">/</span></li>
         {% if room.location %}
-        <li><a href="{% url 'properties:location_detail' room.location.id %}" class="text-gray-700 hover:text-accent-900">{{ room.location.name }}</a></li>
+        <li><a href="{% url 'properties:location_detail' room.location.id %}" class="text-gray-700 hover:text-blue-900">{{ room.location.name }}</a></li>
         {% else %}
         <li><span class="text-gray-500">No Location</span></li>
         {% endif %}
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'properties:room_detail' room.pk %}" class="text-gray-700 hover:text-accent-900">{{ room.room_number }}</a></li>
+        <li><a href="{% url 'properties:room_detail' room.pk %}" class="text-gray-700 hover:text-blue-900">{{ room.room_number }}</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">Delete</span></li>
     </ol>
@@ -77,7 +77,7 @@
                     <dd class="mt-1">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                             {% if room.status == 'available' %}bg-green-100 text-green-800
-                            {% elif room.status == 'occupied' %}bg-accent-100 text-accent-800
+                            {% elif room.status == 'occupied' %}bg-accent-100 text-blue-800
                             {% elif room.status == 'maintenance' %}bg-yellow-100 text-yellow-800
                             {% else %}bg-gray-100 text-gray-800{% endif %}">
                             {{ room.get_status_display }}
@@ -125,7 +125,7 @@
     <!-- Action Buttons -->
     <div class="mt-6 flex justify-end space-x-3">
         <a href="{% url 'properties:room_detail' room.pk %}"
-           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>

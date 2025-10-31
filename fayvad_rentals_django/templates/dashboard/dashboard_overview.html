@@ -7,7 +7,7 @@
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
         <li class="inline-flex items-center">
-            <a href="{% url 'dashboard:dashboard_overview' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-accent-900">
+            <a href="{% url 'dashboard:dashboard_overview' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-900">
                 <svg class="w-3 h-3 mr-2.5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2A1 1 0 0 0 1 10h2v10a1 1 0 0 0 1 1h10v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v4H4v-9.414l6-6 6 6V18h-3v-4a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v6h-2V10h2a1 1 0 0 0 .707-.293Z"/>
                 </svg>
@@ -87,7 +87,7 @@
         </div>
         <div class="bg-gray-50 px-5 py-3">
             <div class="text-sm">
-                <span class="text-accent-900 font-medium">{{ metrics.total_rooms.occupied }}</span>
+                <span class="text-blue-900 font-medium">{{ metrics.total_rooms.occupied }}</span>
                 <span class="text-gray-500">occupied ({{ metrics.occupancy_rate }}%)</span>
             </div>
         </div>
@@ -241,14 +241,6 @@
 <div class="mb-8">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold text-gray-900">Pending Tasks</h2>
-        {% if can_view_audit_logs %}
-        <a href="{% url 'dashboard:audit_log' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            View Audit Log
-        </a>
-        {% endif %}
     </div>
 
     {% if pending_tasks.total_count > 0 %}
@@ -359,49 +351,6 @@
         {% endif %}
 
         <!-- Escalated Issues (Managers Only) -->
-        {% if pending_tasks.escalated_issues %}
-        <div class="bg-white shadow rounded-lg">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-medium text-gray-900">Escalated Issues</h3>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        {{ pending_tasks.escalated_issues|length }}
-                    </span>
-                </div>
-            </div>
-            <div class="divide-y divide-gray-200 max-h-80 overflow-y-auto">
-                {% for task in pending_tasks.escalated_issues %}
-                <a href="{{ task.url }}" class="block px-6 py-4 hover:bg-gray-50">
-                    <div class="flex items-start space-x-3">
-                        <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center space-x-2">
-                                <h4 class="text-sm font-medium text-gray-900 truncate">{{ task.title }}</h4>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                    Escalated
-                                </span>
-                            </div>
-                            <p class="text-sm text-gray-600 mt-1">{{ task.description }}</p>
-                            <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                                <span>{{ task.tenant }}</span>
-                                <span>{{ task.room }}</span>
-                                {% if task.days_pending %}
-                                <span>{{ task.days_pending }} days pending</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
     </div>
     {% else %}
     <div class="bg-white shadow rounded-lg">
@@ -411,16 +360,6 @@
             </svg>
             <h3 class="mt-2 text-sm font-medium text-gray-900">All caught up!</h3>
             <p class="mt-1 text-sm text-gray-500">No pending tasks require your attention.</p>
-            {% if can_view_audit_logs %}
-            <div class="mt-4">
-                <a href="{% url 'dashboard:audit_log' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    View Audit Log
-                </a>
-            </div>
-            {% endif %}
         </div>
     </div>
     {% endif %}
@@ -498,7 +437,7 @@
         <div class="flex justify-between items-center">
             <h3 class="text-lg font-medium text-gray-900">Dashboard Controls</h3>
             <button id="auto-refresh-toggle" onclick="toggleAutoRefresh()"
-                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md bg-accent text-white hover:bg-accent-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
                 <svg class="w-4 h-4 mr-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                 </svg>
@@ -515,25 +454,45 @@
     </div>
     <div class="p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <a href="{% url 'tenants:tenant_create' %}" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent-800">
+            <a href="{% url 'tenants:tenant_create' %}" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 text-white">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                 </svg>
                 Add Tenant
             </a>
-            <a href="{% url 'properties:room_create' %}" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent-800">
+            <a href="{% url 'properties:room_create' %}" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 text-white">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
                 Add Room
             </a>
-            <a href="{% url 'payments:payment_create' %}" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent-800">
+            <a href="{% url 'payments:payment_create' %}" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 text-white">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
                 Record Payment
             </a>
-            <a href="{% url 'reports:report_list' %}" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent-800">
+            <a href="{% url 'properties:location_create' %}" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 text-white">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Add Location
+            </a>
+            <a href="{% url 'maintenance:maintenance_request_create' %}" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 text-white">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Report Issue
+            </a>
+            <a href="{% url 'rentals:rental_agreement_create' %}" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 text-white">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Create Agreement
+            </a>
+            <a href="{% url 'reports:report_list' %}" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 text-white">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
@@ -582,18 +541,14 @@
     </div>
 </div>
 
-<!-- User Notifications Panel -->
 {% if user.is_staff %}
 <div class="mt-8 bg-white shadow rounded-lg">
     <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-medium text-gray-900">Recent Notifications</h3>
     </div>
     <div class="p-6">
-        <div id="user-notifications" class="space-y-3 max-h-64 overflow-y-auto">
-            <div class="text-sm text-gray-500">Loading notifications...</div>
         </div>
         <div class="mt-4">
-            <button id="mark-all-read" class="text-sm text-accent-600 hover:text-accent-800 font-medium">
+            <button id="mark-all-read" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
                 Mark all as read
             </button>
         </div>
@@ -607,176 +562,82 @@ document.addEventListener('DOMContentLoaded', function() {
     loadWorkflowAlerts();
     loadWorkflowMetrics();
     {% if user.is_staff %}
-    loadUserNotifications();
     {% endif %}
 });
 
 function loadWorkflowAlerts() {
-    // Load overdue maintenance and pending payments
-    Promise.all([
-        fetch('/core_services/maintenance_service.py').then(() => ({})), // Mock for now
-        fetch('/core_services/payment_service.py').then(() => ({})), // Mock for now
-    ])
-    .then(() => {
-        // Mock alerts for demo - in real app, call actual service methods
-        const alertsElement = document.getElementById('workflow-alerts');
-        const mockAlerts = [
-            {
-                type: 'warning',
-                title: 'Overdue Maintenance',
-                message: '3 maintenance requests are past their SLA deadline',
-                count: 3,
-                color: 'yellow'
-            },
-            {
-                type: 'info',
-                title: 'Pending Payments',
-                message: '12 payments awaiting verification',
-                count: 12,
-                color: 'blue'
-            },
-            {
-                type: 'success',
-                title: 'Completed Today',
-                message: '8 maintenance requests completed today',
-                count: 8,
-                color: 'green'
-            }
-        ];
+    console.log("Loading dashboard alerts");
 
-        let alertsHtml = '';
-        mockAlerts.forEach(alert => {
-            alertsHtml += `
-                <div class="flex items-center p-4 bg-${alert.color}-50 border border-${alert.color}-200 rounded-lg">
-                    <div class="flex-shrink-0">
-                        <svg class="w-5 h-5 text-${alert.color}-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3 flex-1">
-                        <h4 class="text-sm font-medium text-${alert.color}-800">${alert.title}</h4>
-                        <p class="text-sm text-${alert.color}-700">${alert.message}</p>
-                    </div>
-                    <div class="ml-3">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${alert.color}-100 text-${alert.color}-800">
-                            ${alert.count}
-                        </span>
-                    </div>
-                </div>
-            `;
-        });
+    // Simple direct API call for dashboard metrics
+    fetch('/api/dashboard/alerts/')
+        .then(response => response.json())
+        .then(data => {
+            const alertsElement = document.getElementById('workflow-alerts');
 
-        if (alertsHtml === '') {
-            alertsHtml = '<div class="text-sm text-gray-500">No active alerts</div>';
-        }
+            if (!alertsElement) return;
 
-        alertsElement.innerHTML = alertsHtml;
-    })
-    .catch(error => {
-        console.error('Error loading workflow alerts:', error);
-        document.getElementById('workflow-alerts').innerHTML =
-            '<div class="text-sm text-red-600">Error loading alerts</div>';
-    });
-}
+            let alertsHtml = '';
 
-function loadWorkflowMetrics() {
-    // Mock workflow metrics
-    const metricsElement = document.getElementById('workflow-metrics');
-    const mockMetrics = [
-        { label: 'Active Maintenance', value: '15', change: '+2', trend: 'up' },
-        { label: 'Pending Payments', value: '8', change: '-3', trend: 'down' },
-        { label: 'Avg Resolution Time', value: '2.4 days', change: '-0.3', trend: 'down' },
-        { label: 'SLA Compliance', value: '94%', change: '+2%', trend: 'up' }
-    ];
-
-    let metricsHtml = '';
-    mockMetrics.forEach(metric => {
-        const trendColor = metric.trend === 'up' ? 'green' : 'red';
-        const trendIcon = metric.trend === 'up' ?
-            '<svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>' :
-            '<svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
-
-        metricsHtml += `
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600">${metric.label}</p>
-                    <p class="text-2xl font-bold text-gray-900">${metric.value}</p>
-                </div>
-                <div class="flex items-center text-sm">
-                    ${trendIcon}
-                    <span class="ml-1 text-${trendColor}-600 font-medium">${metric.change}</span>
-                </div>
-            </div>
-        `;
-    });
-
-    metricsElement.innerHTML = metricsHtml;
-}
-
-function loadUserNotifications() {
-    fetch('/api/workflows/notifications/', {
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        const notificationsElement = document.getElementById('user-notifications');
-
-        if (data.success && data.data.length > 0) {
-            let notificationsHtml = '';
-            data.data.slice(0, 5).forEach(notification => {
-                const isRead = notification.is_read;
-                const bgClass = isRead ? 'bg-gray-50' : 'bg-blue-50 border-blue-200';
-                const titleClass = isRead ? 'text-gray-900' : 'text-blue-900 font-medium';
-
-                notificationsHtml += `
-                    <div class="p-3 ${bgClass} rounded-lg border">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <h4 class="text-sm ${titleClass}">${notification.title}</h4>
-                                <p class="text-xs text-gray-600 mt-1">${notification.message}</p>
-                                <p class="text-xs text-gray-500 mt-1">${new Date(notification.created_at).toLocaleDateString()}</p>
+            // Overdue maintenance alerts
+            if (data.overdue_maintenance > 0) {
+                alertsHtml += `
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                                    <svg class="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-900">Overdue Maintenance</h4>
+                                    <p class="text-sm text-gray-600">${data.overdue_maintenance} requests need attention</p>
+                                </div>
                             </div>
-                            ${!isRead ? '<div class="w-2 h-2 bg-blue-500 rounded-full ml-2"></div>' : ''}
+                            <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">${data.overdue_maintenance}</span>
                         </div>
+                        <a href="/maintenance/" class="mt-2 text-sm text-yellow-600 hover:text-yellow-800 font-medium">View Details →</a>
                     </div>
                 `;
-            });
-            notificationsElement.innerHTML = notificationsHtml;
-        } else {
-            notificationsElement.innerHTML = '<div class="text-sm text-gray-500">No recent notifications</div>';
-        }
-    })
-    .catch(error => {
-        console.error('Error loading notifications:', error);
-        document.getElementById('user-notifications').innerHTML =
-            '<div class="text-sm text-red-600">Error loading notifications</div>';
-    });
-}
+            }
 
-// Mark all notifications as read
-document.getElementById('mark-all-read')?.addEventListener('click', function() {
-    fetch('/api/workflows/notifications/mark-read/', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            notification_ids: []  // Empty array marks all as read
+            // Pending payments alerts
+            if (data.pending_payments > 0) {
+                alertsHtml += `
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-900">Pending Payments</h4>
+                                    <p class="text-sm text-gray-600">${data.pending_payments} payments awaiting processing</p>
+                                </div>
+                            </div>
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">${data.pending_payments}</span>
+                        </div>
+                        <a href="/payments/" class="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium">View Details →</a>
+                    </div>
+                `;
+            }
+
+            if (alertsHtml === '') {
+                alertsHtml = '<p class="text-gray-500 text-sm">No alerts at this time.</p>';
+            }
+
+            alertsElement.innerHTML = alertsHtml;
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            loadUserNotifications(); // Reload notifications
-        }
-    })
-    .catch(error => {
-        console.error('Error marking notifications as read:', error);
-    });
-});
+        .catch(error => {
+            console.error("Error loading alerts:", error);
+            const alertsElement = document.getElementById('workflow-alerts');
+            if (alertsElement) {
+                alertsElement.innerHTML = '<p class="text-red-500 text-sm">Error loading alerts</p>';
+            }
+        });
+}
 </script>
 {% endblock %}
 
@@ -792,13 +653,13 @@ function toggleAutoRefresh() {
     const icon = button.querySelector('svg');
 
     if (dashboardAutoRefresh) {
-        button.className = button.className.replace('bg-gray-100 text-gray-700', 'bg-accent text-white');
+        button.className = button.className.replace('bg-gray-100 text-gray-700', 'bg-blue-600 text-white');
         icon.classList.remove('text-gray-400');
         icon.classList.add('text-white');
         startAutoRefresh();
         FBS.showToast('Auto-refresh enabled', 'success');
     } else {
-        button.className = button.className.replace('bg-accent text-white', 'bg-gray-100 text-gray-700');
+        button.className = button.className.replace('bg-blue-600 text-white', 'bg-gray-100 text-gray-700');
         icon.classList.remove('text-white');
         icon.classList.add('text-gray-400');
         stopAutoRefresh();
@@ -891,7 +752,7 @@ function updateTrendIndicator(type, value) {
 function showRefreshIndicator() {
     // Create a subtle refresh indicator
     const indicator = document.createElement('div');
-    indicator.className = 'fixed top-20 right-4 bg-accent text-white px-3 py-2 rounded-lg text-sm z-50 opacity-0 transition-opacity duration-300';
+    indicator.className = 'fixed top-20 right-4 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm z-50 opacity-0 transition-opacity duration-300';
     indicator.innerHTML = '<svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>Updated';
     document.body.appendChild(indicator);
 
@@ -923,3 +784,4 @@ document.addEventListener('visibilitychange', function() {
 });
 </script>
 {% endblock %}
+

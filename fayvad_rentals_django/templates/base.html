@@ -120,19 +120,19 @@
                     {% if user.is_authenticated %}
                         <a href="{% url 'dashboard:dashboard_overview' %}" class="flex items-center hover:opacity-80 transition-opacity">
                             <img src="{% static 'logo.png' %}" alt="Fayvad Rentals" class="h-8 w-auto mr-3">
-                            <span class="text-xl font-display font-semibold text-accent-900">Fayvad Rentals</span>
+                            <span class="text-xl font-display font-semibold text-blue-900">Fayvad Rentals</span>
                         </a>
                     {% else %}
                         <a href="{% url 'homepage' %}" class="flex items-center hover:opacity-80 transition-opacity">
                             <img src="{% static 'logo.png' %}" alt="Fayvad Rentals" class="h-8 w-auto mr-3">
-                            <span class="text-xl font-display font-semibold text-accent-900">Fayvad Rentals</span>
+                            <span class="text-xl font-display font-semibold text-blue-900">Fayvad Rentals</span>
                         </a>
                     {% endif %}
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <!-- Sidebar Toggle Button -->
-                    {% if user.is_authenticated %}
+                    <!-- Sidebar Toggle Button - Only for staff/admin users -->
+                    {% if user.is_authenticated and not user.tenant_profile %}
                         <button id="sidebar-toggle" class="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-accent">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -148,7 +148,7 @@
                             <button type="submit" class="text-sm text-gray-500 hover:text-gray-700 bg-transparent border-none p-0 cursor-pointer">Logout</button>
                         </form>
                     {% else %}
-                        <a href="{% url 'accounts:login' %}" class="text-sm text-accent-900 hover:text-accent-900">Login</a>
+                        <a href="{% url 'accounts:login' %}" class="text-sm text-blue-900 hover:text-blue-900">Login</a>
                     {% endif %}
                 </div>
             </div>
@@ -156,50 +156,12 @@
     </nav>
 
     <div class="flex">
-        <!-- Sidebar -->
-        {% if user.is_authenticated %}
+        <!-- Sidebar - Only for staff/admin users (not tenants) -->
+        {% if user.is_authenticated and not user.tenant_profile %}
         <div id="sidebar" class="sidebar bg-white shadow-sm min-h-screen fixed left-0 top-0 h-full overflow-y-auto z-50">
             <nav class="mt-8">
                 <div class="px-4 space-y-2">
                     {% comment %} Check if user is a tenant (has tenant_profile) {% endcomment %}
-                    {% if user.tenant_profile %}
-                        <!-- Tenant Navigation -->
-                        <a href="{% url 'tenant:dashboard' %}" class="nav-link flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" data-tooltip="My Dashboard">
-                            <svg class="nav-icon w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
-                            </svg>
-                            <span class="nav-text">My Dashboard</span>
-                        </a>
-                        <a href="{% url 'tenant:profile' %}" class="nav-link flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" data-tooltip="My Profile">
-                            <svg class="nav-icon w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                            <span class="nav-text">My Profile</span>
-                        </a>
-                        <a href="{% url 'tenant:payment_list' %}" class="nav-link flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" data-tooltip="My Payments">
-                            <svg class="nav-icon w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                            <span class="nav-text">My Payments</span>
-                        </a>
-                        <a href="#notifications" onclick="showTenantNotifications()" class="nav-link flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" data-tooltip="Notifications">
-                            <svg class="nav-icon w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h4l4 4V19h4a2 2 0 002-2z"></path>
-                            </svg>
-                            <span class="nav-text">Notifications</span>
-                            <span id="notification-badge" class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 hidden">0</span>
-                        </a>
-                        <div class="border-t border-gray-200 my-4"></div>
-                        <p class="px-4 text-xs text-gray-500 uppercase tracking-wider nav-text">Need Help?</p>
-                        <a href="#" class="nav-link flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" data-tooltip="Contact Support">
-                            <svg class="nav-icon w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <span class="nav-text">Contact Support</span>
-                        </a>
-                    {% else %}
                         <!-- Staff Navigation -->
                         <a href="{% url 'dashboard:dashboard_overview' %}" class="nav-link flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" data-tooltip="Dashboard">
                             <svg class="nav-icon w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,12 +219,6 @@
                             <span class="nav-text">Reports</span>
                         </a>
                         {% if user.is_staff %}
-                        <a href="#workflow-triggers" onclick="showWorkflowTriggers()" class="nav-link flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" data-tooltip="Workflow Triggers">
-                            <svg class="nav-icon w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                            </svg>
-                            <span class="nav-text">Triggers</span>
-                        </a>
                         <a href="{% url 'admin:index' %}" class="nav-link flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md" data-tooltip="Admin">
                             <svg class="nav-icon w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -271,14 +227,12 @@
                             <span class="nav-text">Admin</span>
                         </a>
                         {% endif %}
-                    {% endif %}
                 </div>
             </nav>
         </div>
         {% endif %}
-
         <!-- Main Content -->
-        <div id="main-content" class="main-content flex-1">
+        <div id="main-content" class="main-content {% if user.is_authenticated and not user.tenant_profile %}flex-1{% else %}w-full{% endif %}">
             <main class="py-8">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <!-- Breadcrumbs -->
@@ -296,7 +250,7 @@
                     {% if messages %}
                         <div class="mb-8">
                             {% for message in messages %}
-                                <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 text-red-800{% elif message.tags == 'success' %}bg-green-50 text-green-800{% else %}bg-accent-50 text-accent-800{% endif %}">
+                                <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 text-red-800{% elif message.tags == 'success' %}bg-green-50 text-green-800{% else %}bg-accent-50 text-blue-800{% endif %}">
                                     {{ message }}
                                 </div>
                             {% endfor %}
@@ -310,64 +264,6 @@
         </div>
     </div>
 
-    <!-- Tenant Notifications Modal -->
-    <div id="tenantNotificationsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white m-5">
-            <div class="mt-3">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">My Notifications</h3>
-                    <button onclick="hideTenantNotifications()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <div id="tenant-notifications-list" class="space-y-3 max-h-96 overflow-y-auto">
-                    <div class="text-sm text-gray-500">Loading notifications...</div>
-                </div>
-
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button onclick="hideTenantNotifications()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200">
-                        Close
-                    </button>
-                    <button onclick="markAllTenantNotificationsRead()" class="px-4 py-2 text-sm font-medium text-white bg-accent border border-transparent rounded-md hover:bg-accent">
-                        Mark All Read
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Workflow Triggers Modal -->
-    <div id="workflowTriggersModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white m-5">
-            <div class="mt-3">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Workflow Triggers</h3>
-                    <button onclick="hideWorkflowTriggers()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Trigger List -->
-                <div id="workflow-triggers-list" class="space-y-4">
-                    <div class="text-sm text-gray-500">Loading workflow triggers...</div>
-                </div>
-
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button onclick="hideWorkflowTriggers()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200">
-                        Close
-                    </button>
-                    <button onclick="refreshWorkflowTriggers()" class="px-4 py-2 text-sm font-medium text-white bg-accent border border-transparent rounded-md hover:bg-accent">
-                        Refresh
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Footer -->
     <footer class="bg-white border-t mt-16">
@@ -404,13 +300,12 @@
                 return token ? token.value : '';
             },
 
-            // Show toast messages (like React notifications)
             showToast: function(message, type = 'info') {
                 const colors = {
                     success: 'bg-green-50 text-green-800 border-green-200',
                     error: 'bg-red-50 text-red-800 border-red-200',
                     warning: 'bg-yellow-50 text-yellow-800 border-yellow-200',
-                    info: 'bg-accent-50 text-accent-800 border-accent-200'
+                    info: 'bg-accent-50 text-blue-800 border-blue-200'
                 };
 
                 const toast = document.createElement('div');
@@ -462,251 +357,17 @@
             });
         }
 
-        // Tenant Notifications
-        function showTenantNotifications() {
-            loadTenantNotifications();
-            document.getElementById('tenantNotificationsModal').classList.remove('hidden');
-        }
 
-        function hideTenantNotifications() {
-            document.getElementById('tenantNotificationsModal').classList.add('hidden');
-        }
 
-        function loadTenantNotifications() {
-            fetch('/api/workflows/notifications/', {
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const notificationsElement = document.getElementById('tenant-notifications-list');
-                const badgeElement = document.getElementById('notification-badge');
 
-                if (data.success && data.data.length > 0) {
-                    let notificationsHtml = '';
-                    let unreadCount = 0;
 
-                    data.data.slice(0, 10).forEach(notification => {
-                        const isRead = notification.is_read;
-                        const bgClass = isRead ? 'bg-gray-50' : 'bg-blue-50 border-blue-200';
-                        const titleClass = isRead ? 'text-gray-900' : 'text-blue-900 font-medium';
 
-                        if (!isRead) unreadCount++;
-
-                        notificationsHtml += `
-                            <div class="p-3 ${bgClass} rounded-lg border">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-1">
-                                        <h4 class="text-sm ${titleClass}">${notification.title}</h4>
-                                        <p class="text-xs text-gray-600 mt-1">${notification.message}</p>
-                                        <p class="text-xs text-gray-500 mt-1">${new Date(notification.created_at).toLocaleDateString()}</p>
-                                    </div>
-                                    ${!isRead ? '<div class="w-2 h-2 bg-blue-500 rounded-full ml-2 mt-2"></div>' : ''}
-                                </div>
-                            </div>
-                        `;
-                    });
-                    notificationsElement.innerHTML = notificationsHtml;
-
-                    // Update badge
-                    if (unreadCount > 0) {
-                        badgeElement.textContent = unreadCount > 9 ? '9+' : unreadCount;
-                        badgeElement.classList.remove('hidden');
-                    } else {
-                        badgeElement.classList.add('hidden');
-                    }
-                } else {
-                    notificationsElement.innerHTML = '<div class="text-sm text-gray-500">No notifications</div>';
-                    badgeElement.classList.add('hidden');
-                }
-            })
-            .catch(error => {
-                console.error('Error loading tenant notifications:', error);
-                document.getElementById('tenant-notifications-list').innerHTML =
-                    '<div class="text-sm text-red-600">Error loading notifications</div>';
-            });
-        }
-
-        function markAllTenantNotificationsRead() {
-            fetch('/api/workflows/notifications/mark-read/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    notification_ids: []  // Empty array marks all as read
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    loadTenantNotifications(); // Reload notifications
-                    FBS.showToast('All notifications marked as read', 'success');
-                } else {
-                    FBS.showToast('Failed to mark notifications as read', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error marking notifications as read:', error);
-                FBS.showToast('Error updating notifications', 'error');
-            });
-        }
-
-        // Workflow Triggers
-        function showWorkflowTriggers() {
-            loadWorkflowTriggers();
-            document.getElementById('workflowTriggersModal').classList.remove('hidden');
-        }
-
-        function hideWorkflowTriggers() {
-            document.getElementById('workflowTriggersModal').classList.add('hidden');
-        }
-
-        function loadWorkflowTriggers() {
-            // Mock workflow triggers for demo - in production, this would fetch from API
-            const triggersElement = document.getElementById('workflow-triggers-list');
-
-            const mockTriggers = [
-                {
-                    id: 1,
-                    name: 'SLA Escalation - High Priority',
-                    instance_type: 'MaintenanceRequest',
-                    trigger_type: 'time_based',
-                    action_type: 'escalation',
-                    is_active: true,
-                    last_triggered: '2 hours ago',
-                    executions: 5
-                },
-                {
-                    id: 2,
-                    name: 'Payment Reminder - Overdue',
-                    instance_type: 'RentalAgreement',
-                    trigger_type: 'time_based',
-                    action_type: 'notification',
-                    is_active: true,
-                    last_triggered: '1 day ago',
-                    executions: 12
-                },
-                {
-                    id: 3,
-                    name: 'Auto Assign Urgent Maintenance',
-                    instance_type: 'MaintenanceRequest',
-                    trigger_type: 'condition_based',
-                    action_type: 'assignment',
-                    is_active: false,
-                    last_triggered: 'Never',
-                    executions: 0
-                }
-            ];
-
-            let triggersHtml = '';
-            mockTriggers.forEach(trigger => {
-                const statusClass = trigger.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
-                const statusText = trigger.is_active ? 'Active' : 'Inactive';
-
-                triggersHtml += `
-                    <div class="bg-white border border-gray-200 rounded-lg p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center space-x-3">
-                                <div class="flex-shrink-0">
-                                    <div class="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center">
-                                        <svg class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-900">${trigger.name}</h4>
-                                    <p class="text-xs text-gray-500">${trigger.instance_type} • ${trigger.trigger_type.replace('_', ' ')} • ${trigger.action_type}</p>
-                                </div>
-                            </div>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
-                                ${statusText}
-                            </span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 text-xs text-gray-600">
-                            <div>Last executed: ${trigger.last_triggered}</div>
-                            <div>Executions: ${trigger.executions}</div>
-                        </div>
-                        <div class="mt-3 flex space-x-2">
-                            <button onclick="toggleTrigger(${trigger.id}, ${trigger.is_active})"
-                                    class="text-xs px-2 py-1 rounded ${trigger.is_active ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}">
-                                ${trigger.is_active ? 'Deactivate' : 'Activate'}
-                            </button>
-                            <button onclick="editTrigger(${trigger.id})"
-                                    class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200">
-                                Edit
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            if (triggersHtml === '') {
-                triggersHtml = '<div class="text-sm text-gray-500">No workflow triggers configured</div>';
-            }
-
-            triggersElement.innerHTML = triggersHtml;
-        }
-
-        function toggleTrigger(triggerId, currentlyActive) {
-            // Mock toggle functionality
-            const action = currentlyActive ? 'deactivated' : 'activated';
-            FBS.showToast(`Trigger ${action} successfully`, 'success');
-            setTimeout(() => loadWorkflowTriggers(), 1000);
-        }
-
-        function editTrigger(triggerId) {
-            FBS.showToast('Edit trigger functionality would open configuration modal', 'info');
-        }
-
-        function refreshWorkflowTriggers() {
-            loadWorkflowTriggers();
-            FBS.showToast('Workflow triggers refreshed', 'success');
-        }
 
         // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Fayvad Rentals System initialized');
 
-            // Load tenant notifications on page load for badge
-            {% if user.is_authenticated and user.tenant_profile %}
-            loadTenantNotifications();
-            {% endif %}
-
-            // Add backdrop click handlers for modals
-            const tenantModal = document.getElementById('tenantNotificationsModal');
-            if (tenantModal) {
-                tenantModal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        hideTenantNotifications();
-                    }
-                });
-            }
-
-            const triggersModal = document.getElementById('workflowTriggersModal');
-            if (triggersModal) {
-                triggersModal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        hideWorkflowTriggers();
-                    }
-                });
-            }
-
-            // Add Escape key handler for modals
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    // Close any open modals
-                    if (!tenantModal.classList.contains('hidden')) {
-                        hideTenantNotifications();
-                    }
-                    if (!triggersModal.classList.contains('hidden')) {
-                        hideWorkflowTriggers();
-                    }
-                }
-            });
+            // System initialized successfully
         });
     </script>
 

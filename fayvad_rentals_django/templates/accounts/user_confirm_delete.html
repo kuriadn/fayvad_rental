@@ -5,9 +5,9 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'accounts:user_list' %}" class="text-gray-700 hover:text-accent-900">Users</a></li>
+        <li><a href="{% url 'accounts:user_list' %}" class="text-gray-700 hover:text-blue-900">Users</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">{{ page_title }}</span></li>
     </ol>
@@ -86,7 +86,7 @@
     <!-- Actions -->
     <div class="bg-white shadow rounded-lg">
         <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
-            <a href="{% url 'accounts:user_list' %}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <a href="{% url 'accounts:user_list' %}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-white bg-primary-500 hover:bg-primary-600 text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 Cancel
             </a>
             <form method="post" class="inline-block ml-3">

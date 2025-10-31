@@ -19,8 +19,8 @@ def payment_list(request):
     """List all payments - Staff only"""
     # Check if user is staff or has tenant profile (tenants should use tenant views)
     if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
-        # This is a tenant trying to access staff payments - redirect to tenant payments
-        return redirect('tenant:payment_list')
+        # This is a tenant trying to access staff payments - redirect to tenant payment history
+        return redirect('tenants:tenant_payments')
 
     # Only staff/admin can access this view
     if not (request.user.is_staff or request.user.is_superuser):
@@ -95,8 +95,8 @@ def payment_detail(request, pk):
     """View payment details - Staff only"""
     # Check if user is staff or has tenant profile (tenants should use tenant views)
     if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
-        # This is a tenant trying to access staff payment details - redirect to tenant payments
-        return redirect('tenant:payment_list')
+        # This is a tenant trying to access staff payment details - redirect to tenant payment history
+        return redirect('tenants:tenant_payments')
 
     # Only staff/admin can access this view
     if not (request.user.is_staff or request.user.is_superuser):
@@ -118,8 +118,8 @@ def payment_create(request):
     """Create new payment - Staff only"""
     # Check if user is staff or has tenant profile (tenants should use tenant views)
     if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
-        # This is a tenant trying to access staff payment creation - redirect to tenant payment reporting
-        return redirect('tenant:payment_report')
+        # This is a tenant trying to access staff payment creation - redirect to tenant payment history
+        return redirect('tenants:tenant_payments')
 
     # Only staff/admin can access this view
     if not (request.user.is_staff or request.user.is_superuser):
@@ -145,8 +145,8 @@ def payment_update(request, pk):
     """Update existing payment - Staff only"""
     # Check if user is staff or has tenant profile (tenants should use tenant views)
     if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
-        # This is a tenant trying to access staff payment update - redirect to tenant payments
-        return redirect('tenant:payment_list')
+        # This is a tenant trying to access staff payment update - redirect to tenant payment history
+        return redirect('tenants:tenant_payments')
 
     # Only staff/admin can access this view
     if not (request.user.is_staff or request.user.is_superuser):
@@ -175,8 +175,8 @@ def payment_delete(request, pk):
     """Delete payment - Staff only"""
     # Check if user is staff or has tenant profile (tenants should use tenant views)
     if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
-        # This is a tenant trying to access staff payment delete - redirect to tenant payments
-        return redirect('tenant:payment_list')
+        # This is a tenant trying to access staff payment delete - redirect to tenant payment history
+        return redirect('tenants:tenant_payments')
 
     # Only staff/admin can access this view
     if not (request.user.is_staff or request.user.is_superuser):

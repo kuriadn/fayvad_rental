@@ -8,6 +8,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect, render
+from tenants import views as tenants_views
 
 def homepage(request):
     """Marketing homepage for Fayvad Rentals"""
@@ -46,11 +47,12 @@ urlpatterns = [
     path("documents/", include("documents.urls")),
     path("reports/", include("reports.urls")),
 
+
     # Dashboard and BI
     path("dashboard/", include("dashboard.urls")),
 
-    # Workflow API
-    path("api/workflows/", include("workflows.api.urls")),
+    # Simple workflow API (now in core_services)
+    path("api/workflows/", include("core_services.urls")),
 
     # Tenant portal
     path("tenant/", include("tenants.urls")),

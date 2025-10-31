@@ -237,6 +237,9 @@ class ComplaintForm(forms.ModelForm):
                 # User doesn't have tenant profile
                 self.fields['room'].queryset = self.fields['room'].queryset.none()
 
+        # Make contact_preference not required since it has a default
+        self.fields['contact_preference'].required = False
+
         # Make room optional
         self.fields['room'].required = False
         self.fields['priority'].initial = 'medium'

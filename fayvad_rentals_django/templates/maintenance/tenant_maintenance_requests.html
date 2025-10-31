@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Maintenance Requests - {{ tenant.name }} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'tenants:tenant_dashboard' tenant.id %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">Maintenance</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">My Maintenance Requests</h1>
+            <p class="mt-1 text-sm text-gray-600">{{ total_requests }} total requests</p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="{% url 'tenants:complaint_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Report New Issue
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <div class="text-2xl font-bold text-gray-900">{{ pending_requests }}</div>
+                    <div class="text-sm text-gray-600">Pending</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-accent-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <div class="text-2xl font-bold text-gray-900">{{ total_requests|add:0 }}</div>
+                    <div class="text-sm text-gray-600">In Progress</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <div class="text-2xl font-bold text-gray-900">{{ completed_requests }}</div>
+                    <div class="text-sm text-gray-600">Completed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Request List -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <ul class="divide-y divide-gray-200" id="maintenance-list">
+            {% for request in maintenance_requests %}
+            <li class="px-6 py-4 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                <span class="text-sm font-medium text-gray-700">
+                                    {% if request.priority == 'urgent' %}🚨{% elif request.priority == 'high' %}⚡{% elif request.priority == 'medium' %}⚠️{% else %}🔧{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">
+                                <a href="{% url 'tenants:complaint_detail' request.pk %}" class="hover:text-blue-900">
+                                    {{ request.request_number }}
+                                </a>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                {{ request.title|truncatechars:50 }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <!-- Priority Badge -->
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if request.priority == 'urgent' %}bg-red-100 text-red-800
+                            {% elif request.priority == 'high' %}bg-orange-100 text-orange-800
+                            {% elif request.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ request.get_priority_display }}
+                        </span>
+
+                        <!-- Status Badge -->
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if request.status == 'completed' %}bg-green-100 text-green-800
+                            {% elif request.status == 'in_progress' %}bg-blue-100 text-blue-800
+                            {% elif request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {% if request.status == 'completed' %}Completed
+                            {% elif request.status == 'in_progress' %}In Progress
+                            {% elif request.status == 'pending' %}Pending
+                            {% else %}{{ request.status|title }}{% endif %}
+                        </span>
+
+                        <!-- View Details -->
+                        <a href="{% url 'tenants:complaint_detail' request.pk %}"
+                           class="text-gray-400 hover:text-gray-600" title="View Details">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="mt-2 sm:flex sm:justify-between">
+                    <div class="sm:flex">
+                        <div class="flex items-center text-sm text-gray-500">
+                            {% if request.scheduled_date %}Scheduled: {{ request.scheduled_date|date:"M j, Y" }}{% endif %}
+                        </div>
+                        {% if request.estimated_cost %}
+                        <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                            Est. Cost: KSh {{ request.estimated_cost|intcomma }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                        <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                        </svg>
+                        Created {{ request.created_at|date:"M j, Y" }}
+                        {% if request.created_by %} by {{ request.created_by.get_full_name }}{% endif %}
+                    </div>
+                </div>
+            </li>
+            {% empty %}
+            <li class="px-6 py-4 text-center text-gray-500">
+                No maintenance requests found.
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

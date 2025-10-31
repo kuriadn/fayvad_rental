@@ -168,23 +168,6 @@ class MaintenanceRequest(models.Model):
         help_text="Notes from follow-up visit"
     )
 
-    # Tenant Satisfaction Feedback
-    tenant_satisfaction_rating = models.PositiveSmallIntegerField(
-        null=True,
-        blank=True,
-        choices=[(1, 'Very Dissatisfied'), (2, 'Dissatisfied'), (3, 'Neutral'), (4, 'Satisfied'), (5, 'Very Satisfied')],
-        help_text="Tenant's satisfaction rating (1-5 scale)"
-    )
-    tenant_feedback = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Tenant's feedback on the maintenance resolution"
-    )
-    feedback_date = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When tenant provided feedback"
-    )
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)

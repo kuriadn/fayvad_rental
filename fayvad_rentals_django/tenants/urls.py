@@ -30,6 +30,9 @@ urlpatterns = [
     path('complaints/<uuid:pk>/', views.complaint_detail, name='complaint_detail'),
     path('complaints/<uuid:pk>/update/', views.complaint_update, name='complaint_update'),
 
+    # Tenant-specific payment views
+    path('payments/', views.tenant_payments, name='tenant_payments'),
+
     # Tenant-specific complaint views
     path('tenant/<uuid:tenant_id>/complaints/', views.tenant_complaints, name='tenant_complaints'),
     path('tenant/complaints/create/', views.tenant_complaint_create, name='tenant_complaint_create'),

@@ -6,11 +6,11 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'properties:location_list' %}" class="text-gray-700 hover:text-accent-900">Locations</a></li>
+        <li><a href="{% url 'properties:location_list' %}" class="text-gray-700 hover:text-blue-900">Locations</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'properties:location_detail' room.location.pk %}" class="text-gray-700 hover:text-accent-900">{{ room.location.name }}</a></li>
+        <li><a href="{% url 'properties:location_detail' room.location.pk %}" class="text-gray-700 hover:text-blue-900">{{ room.location.name }}</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">{{ room.room_number }}</span></li>
     </ol>
@@ -27,7 +27,7 @@
         </div>
         <div class="flex space-x-3">
             <a href="{% url 'properties:room_update' room.pk %}"
-               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent-800">
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 text-white">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
@@ -49,7 +49,7 @@
     <div class="mb-6">
         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
             {% if room.status == 'available' %}bg-green-100 text-green-800
-            {% elif room.status == 'occupied' %}bg-accent-100 text-accent-800
+            {% elif room.status == 'occupied' %}bg-accent-100 text-blue-800
             {% elif room.status == 'maintenance' %}bg-yellow-100 text-yellow-800
             {% else %}bg-gray-100 text-gray-800{% endif %}">
             {{ room.get_status_display }}
@@ -74,7 +74,7 @@
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Location</dt>
                             <dd class="mt-1 text-sm text-gray-900">
-                                <a href="{% url 'properties:location_detail' room.location.pk %}" class="text-accent-900 hover:text-accent-900">
+                                <a href="{% url 'properties:location_detail' room.location.pk %}" class="text-blue-900 hover:text-blue-900">
                                     {{ room.location.name }} ({{ room.location.code }})
                                 </a>
                             </dd>
@@ -96,7 +96,7 @@
                             <dd class="mt-1">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                     {% if room.status == 'available' %}bg-green-100 text-green-800
-                                    {% elif room.status == 'occupied' %}bg-accent-100 text-accent-800
+                                    {% elif room.status == 'occupied' %}bg-accent-100 text-blue-800
                                     {% elif room.status == 'maintenance' %}bg-yellow-100 text-yellow-800
                                     {% else %}bg-gray-100 text-gray-800{% endif %}">
                                     {{ room.get_status_display }}

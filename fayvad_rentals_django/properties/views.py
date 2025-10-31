@@ -14,7 +14,11 @@ from .forms import LocationForm, RoomForm
 
 @login_required
 def location_list(request):
-    """List all locations"""
+    """List all locations - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing property management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access property management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     locations = Location.objects.all().order_by('name')
 
     # Search functionality
@@ -66,7 +70,11 @@ def location_detail(request, pk):
 
 @login_required
 def location_create(request):
-    """Create new location"""
+    """Create new location - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing property management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access property management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     created_location = None
     if request.method == 'POST':
         form = LocationForm(request.POST)
@@ -87,7 +95,11 @@ def location_create(request):
 
 @login_required
 def location_update(request, pk):
-    """Update existing location"""
+    """Update existing location - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing property management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access property management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     location = get_object_or_404(Location, pk=pk)
 
     if request.method == 'POST':
@@ -108,7 +120,11 @@ def location_update(request, pk):
 
 @login_required
 def location_delete(request, pk):
-    """Delete location"""
+    """Delete location - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing property management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access property management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     location = get_object_or_404(Location, pk=pk)
 
     if request.method == 'POST':
@@ -127,7 +143,11 @@ def location_delete(request, pk):
 
 @login_required
 def room_list(request):
-    """List all rooms"""
+    """List all rooms - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing property management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access property management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     rooms = Room.objects.select_related('location').order_by('location__name', 'room_number')
 
     # Filters
@@ -196,7 +216,11 @@ def room_detail(request, pk):
 
 @login_required
 def room_create(request):
-    """Create new room"""
+    """Create new room - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing property management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access property management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     if request.method == 'POST':
         form = RoomForm(request.POST)
         if form.is_valid():
@@ -214,7 +238,11 @@ def room_create(request):
 
 @login_required
 def room_update(request, pk):
-    """Update existing room"""
+    """Update existing room - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing property management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access property management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     room = get_object_or_404(Room, pk=pk)
 
     if request.method == 'POST':
@@ -236,8 +264,13 @@ def room_update(request, pk):
 @login_required
 def room_delete(request, pk):
     """
-    Delete room - restricted to managers/owners only
+    Delete room - Staff/Admin only
     """
+    # Security check: Prevent tenant users from accessing property management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access property management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
+
     # Check permissions - only managers/owners can delete rooms
     if not request.user.groups.filter(name__in=['Manager', 'Admin']).exists():
         messages.error(request, 'You do not have permission to delete rooms.')

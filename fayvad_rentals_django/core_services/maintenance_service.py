@@ -4,11 +4,11 @@ Manages maintenance requests with direct Django ORM
 """
 
 from typing import Dict, List, Optional, Any
-from django.db.models import Q, Count, Avg
+from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from maintenance.models import MaintenanceRequest, MaintenanceStatus, Priority
+from maintenance.models import MaintenanceRequest, Priority
 import logging
 
 User = get_user_model()
@@ -235,18 +235,29 @@ class MaintenanceService:
     @staticmethod
     def assign_technician(request_id: str, technician_name: str, user: User) -> Dict[str, Any]:
         """
-        Assign technician to maintenance request using workflow engine
+        Assign technician to maintenance request
         Requires: caretaker or manager role
         """
         try:
             maintenance_request = MaintenanceRequest.objects.get(id=request_id)
 
-            # Use workflow engine
-            from workflows import MaintenanceWorkflowEngine
-            workflow = MaintenanceWorkflowEngine(maintenance_request)
+            # Update assignment fields directly
+            maintenance_request.assigned_to = technician_name
+            maintenance_request.assigned_date = timezone.now()
 
-            # Execute workflow transition
-            result = workflow.transition('assign_technician', user, technician_name=technician_name)
+            # Change status to in_progress if currently pending
+            from .workflow_service import SimpleWorkflowService
+            if maintenance_request.status == 'pending':
+                workflow_result = SimpleWorkflowService.transition_state(
+                    maintenance_request, 'in_progress', user
+                )
+                if not workflow_result['success']:
+                    return {
+                        'success': False,
+                        'error': workflow_result['error']
+                    }
+
+            maintenance_request.save()
 
             return {
                 'success': True,
@@ -255,9 +266,8 @@ class MaintenanceService:
                     'assigned_to': maintenance_request.assigned_to,
                     'assigned_date': maintenance_request.assigned_date.isoformat() if maintenance_request.assigned_date else None,
                     'status': maintenance_request.status,
-                    'workflow_history': workflow.get_workflow_history()[-1] if workflow.get_workflow_history() else None,
                 },
-                'message': result.get('message', f'Maintenance request assigned to {technician_name}')
+                'message': f'Maintenance request assigned to {technician_name}'
             }
 
         except MaintenanceRequest.DoesNotExist:
@@ -281,14 +291,25 @@ class MaintenanceService:
         try:
             maintenance_request = MaintenanceRequest.objects.get(id=request_id)
 
-            # Use workflow engine
-            from workflows import MaintenanceWorkflowEngine
-            workflow = MaintenanceWorkflowEngine(maintenance_request)
+            # Update completion fields directly
+            maintenance_request.completed_date = timezone.now()
+            if resolution_notes:
+                maintenance_request.resolution_notes = resolution_notes
+            if actual_cost is not None:
+                maintenance_request.actual_cost = actual_cost
 
-            # Execute workflow transition
-            result = workflow.transition('complete_request', user,
-                                       resolution_notes=resolution_notes,
-                                       actual_cost=actual_cost)
+            # Change status to completed
+            from .workflow_service import SimpleWorkflowService
+            workflow_result = SimpleWorkflowService.transition_state(
+                maintenance_request, 'completed', user
+            )
+            if not workflow_result['success']:
+                return {
+                    'success': False,
+                    'error': workflow_result['error']
+                }
+
+            maintenance_request.save()
 
             return {
                 'success': True,
@@ -296,10 +317,8 @@ class MaintenanceService:
                     'id': str(maintenance_request.id),
                     'status': maintenance_request.status,
                     'completed_date': maintenance_request.completed_date.isoformat() if maintenance_request.completed_date else None,
-                    'days_to_completion': maintenance_request.days_to_completion,
-                    'workflow_history': workflow.get_workflow_history()[-1] if workflow.get_workflow_history() else None,
                 },
-                'message': result.get('message', 'Maintenance request completed successfully')
+                'message': 'Maintenance request completed successfully'
             }
 
         except MaintenanceRequest.DoesNotExist:
@@ -323,22 +342,29 @@ class MaintenanceService:
         try:
             maintenance_request = MaintenanceRequest.objects.get(id=request_id)
 
-            # Use workflow engine
-            from workflows import MaintenanceWorkflowEngine
-            workflow = MaintenanceWorkflowEngine(maintenance_request)
+            # Change status to cancelled
+            from .workflow_service import SimpleWorkflowService
+            workflow_result = SimpleWorkflowService.transition_state(
+                maintenance_request, 'cancelled', user
+            )
+            if not workflow_result['success']:
+                return {
+                    'success': False,
+                    'error': workflow_result['error']
+                }
 
-            # Execute workflow transition
-            result = workflow.transition('cancel_request', user, reason=reason or 'No reason provided')
+            # Store cancellation reason in resolution_notes if provided
+            if reason:
+                maintenance_request.resolution_notes = f"Cancelled: {reason}"
+                maintenance_request.save()
 
             return {
                 'success': True,
                 'data': {
                     'id': str(maintenance_request.id),
                     'status': maintenance_request.status,
-                    'cancelled_date': timezone.now().isoformat(),
-                    'workflow_history': workflow.get_workflow_history()[-1] if workflow.get_workflow_history() else None,
                 },
-                'message': result.get('message', 'Maintenance request cancelled successfully')
+                'message': 'Maintenance request cancelled successfully'
             }
 
         except MaintenanceRequest.DoesNotExist:
@@ -362,12 +388,9 @@ class MaintenanceService:
         try:
             maintenance_request = MaintenanceRequest.objects.get(id=request_id)
 
-            # Use workflow engine
-            from workflows import MaintenanceWorkflowEngine
-            workflow = MaintenanceWorkflowEngine(maintenance_request)
-
-            # Execute workflow transition
-            result = workflow.transition('schedule_maintenance', user, scheduled_date=scheduled_date)
+            # Update scheduled date directly
+            maintenance_request.scheduled_date = scheduled_date
+            maintenance_request.save()
 
             return {
                 'success': True,
@@ -375,9 +398,8 @@ class MaintenanceService:
                     'id': str(maintenance_request.id),
                     'scheduled_date': maintenance_request.scheduled_date.isoformat() if maintenance_request.scheduled_date else None,
                     'status': maintenance_request.status,
-                    'workflow_history': workflow.get_workflow_history()[-1] if workflow.get_workflow_history() else None,
                 },
-                'message': result.get('message', f'Maintenance scheduled for {scheduled_date}')
+                'message': f'Maintenance scheduled for {scheduled_date}'
             }
 
         except MaintenanceRequest.DoesNotExist:
@@ -401,22 +423,24 @@ class MaintenanceService:
         try:
             maintenance_request = MaintenanceRequest.objects.get(id=request_id)
 
-            # Use workflow engine
-            from workflows import MaintenanceWorkflowEngine
-            workflow = MaintenanceWorkflowEngine(maintenance_request)
-
-            # Execute workflow transition
-            result = workflow.transition('start_work', user, work_notes=work_notes)
+            # Change status to in_progress
+            from .workflow_service import SimpleWorkflowService
+            workflow_result = SimpleWorkflowService.transition_state(
+                maintenance_request, 'in_progress', user
+            )
+            if not workflow_result['success']:
+                return {
+                    'success': False,
+                    'error': workflow_result['error']
+                }
 
             return {
                 'success': True,
                 'data': {
                     'id': str(maintenance_request.id),
                     'status': maintenance_request.status,
-                    'work_started_date': timezone.now().isoformat(),
-                    'workflow_history': workflow.get_workflow_history()[-1] if workflow.get_workflow_history() else None,
                 },
-                'message': result.get('message', 'Work started on maintenance request')
+                'message': 'Work started on maintenance request'
             }
 
         except MaintenanceRequest.DoesNotExist:
@@ -440,12 +464,10 @@ class MaintenanceService:
         try:
             maintenance_request = MaintenanceRequest.objects.get(id=request_id)
 
-            # Use workflow engine
-            from workflows import MaintenanceWorkflowEngine
-            workflow = MaintenanceWorkflowEngine(maintenance_request)
-
-            # Execute workflow transition
-            result = workflow.transition('escalate_priority', user, new_priority=new_priority)
+            # Update priority directly
+            if new_priority:
+                maintenance_request.priority = new_priority
+                maintenance_request.save()
 
             return {
                 'success': True,
@@ -453,9 +475,8 @@ class MaintenanceService:
                     'id': str(maintenance_request.id),
                     'priority': maintenance_request.priority,
                     'status': maintenance_request.status,
-                    'workflow_history': workflow.get_workflow_history()[-1] if workflow.get_workflow_history() else None,
                 },
-                'message': result.get('message', f'Priority escalated to {maintenance_request.get_priority_display()}')
+                'message': f'Priority escalated to {maintenance_request.get_priority_display()}'
             }
 
         except MaintenanceRequest.DoesNotExist:
@@ -470,79 +491,6 @@ class MaintenanceService:
                 'error': str(e)
             }
 
-    @staticmethod
-    def reopen_request(request_id: str, user: User, reason: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Reopen completed or cancelled maintenance request using workflow engine
-        Requires: caretaker or manager role
-        """
-        try:
-            maintenance_request = MaintenanceRequest.objects.get(id=request_id)
-
-            # Use workflow engine
-            from workflows import MaintenanceWorkflowEngine
-            workflow = MaintenanceWorkflowEngine(maintenance_request)
-
-            # Execute workflow transition
-            result = workflow.transition('reopen_request', user, reason=reason or 'No reason provided')
-
-            return {
-                'success': True,
-                'data': {
-                    'id': str(maintenance_request.id),
-                    'status': maintenance_request.status,
-                    'reopened_date': timezone.now().isoformat(),
-                    'workflow_history': workflow.get_workflow_history()[-1] if workflow.get_workflow_history() else None,
-                },
-                'message': result.get('message', 'Maintenance request reopened successfully')
-            }
-
-        except MaintenanceRequest.DoesNotExist:
-            return {
-                'success': False,
-                'error': 'Maintenance request not found'
-            }
-        except Exception as e:
-            logger.error(f"Error reopening maintenance request {request_id}: {e}")
-            return {
-                'success': False,
-                'error': str(e)
-            }
-
-    @staticmethod
-    def get_workflow_status(request_id: str, user: User) -> Dict[str, Any]:
-        """
-        Get workflow status for a maintenance request
-        """
-        try:
-            maintenance_request = MaintenanceRequest.objects.get(id=request_id)
-
-            # Get workflow information
-            from workflows import MaintenanceWorkflowEngine
-            workflow = MaintenanceWorkflowEngine(maintenance_request)
-
-            return {
-                'success': True,
-                'data': {
-                    'current_state': workflow.get_current_state(),
-                    'available_events': workflow._get_available_events(user),
-                    'sla_status': workflow.get_sla_status(),
-                    'workflow_history': workflow.get_workflow_history(),
-                    'workflow_metrics': workflow.get_workflow_metrics(),
-                }
-            }
-
-        except MaintenanceRequest.DoesNotExist:
-            return {
-                'success': False,
-                'error': 'Maintenance request not found'
-            }
-        except Exception as e:
-            logger.error(f"Error getting workflow status for request {request_id}: {e}")
-            return {
-                'success': False,
-                'error': str(e)
-            }
 
     @staticmethod
     def get_overdue_requests() -> Dict[str, Any]:

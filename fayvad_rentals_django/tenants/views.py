@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.db.models import Sum
 
 from .models import Tenant, TenantStatus
 from .forms import TenantForm, TenantSearchForm, TenantOnboardingForm
@@ -20,8 +21,12 @@ tenant_service = TenantService()
 @login_required
 def tenant_list(request):
     """
-    List tenants - Pure Django implementation
+    List tenants - Staff/Admin only
     """
+    # Security check: Prevent tenant users from accessing tenant management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You can only access your own profile.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     # Get search form
     search_form = TenantSearchForm(request.GET)
 
@@ -116,8 +121,12 @@ def tenant_detail(request, tenant_id):
 @login_required
 def tenant_create(request):
     """
-    Create new tenant - Pure Django implementation
+    Create new tenant - Staff/Admin only
     """
+    # Security check: Prevent tenant users from creating tenants
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot create new tenants.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     if request.method == 'POST':
         form = TenantForm(request.POST)
         if form.is_valid():
@@ -235,8 +244,11 @@ def tenant_delete(request, tenant_id):
 @login_required
 def tenant_status_update(request, tenant_id):
     """
-    Update tenant status via AJAX
+    Update tenant status via AJAX - Staff/Admin only
     """
+    # Security check: Prevent tenant users from updating tenant status
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
     tenant = get_object_or_404(Tenant, id=tenant_id)
     new_status = request.POST.get('status')
 
@@ -252,8 +264,12 @@ def tenant_status_update(request, tenant_id):
 @login_required
 def tenant_onboarding(request):
     """
-    Tenant onboarding workflow
+    Tenant onboarding workflow - Staff/Admin only
     """
+    # Security check: Prevent tenant users from accessing tenant onboarding
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot onboard new tenants.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     if request.method == 'POST':
         form = TenantOnboardingForm(request.POST)
         if form.is_valid():
@@ -499,13 +515,15 @@ def complaint_create(request):
             complaint.tenant = tenant_profile
             complaint.save()
 
-            # Trigger workflow
-            from workflows.complaint import ComplaintWorkflowEngine
-            workflow = ComplaintWorkflowEngine(complaint)
-            workflow.transition('submit_complaint', request.user)
+            # Simple status update instead of complex workflow
+            from .models import ComplaintStatus
+            complaint.status = ComplaintStatus.OPEN
+            complaint.save()
 
-            messages.success(request, f'Complaint "{complaint.subject}" submitted successfully.')
-            return redirect('tenants:complaint_detail', pk=complaint.pk)
+            messages.success(request, f'Maintenance request "{complaint.subject}" submitted successfully.')
+            return redirect('maintenance:tenant_maintenance_requests', tenant_pk=tenant_profile.id)
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = ComplaintForm(user=request.user)
 
@@ -591,4 +609,58 @@ def tenant_complaints(request, tenant_id):
 def tenant_complaint_create(request):
     """Tenant submits a complaint (alternative to complaint_create)"""
     return complaint_create(request)
+
+
+# ===== TENANT PAYMENT VIEWS =====
+
+@login_required
+def tenant_payments(request):
+    """Tenant views their own payment history"""
+    # Check if user has tenant profile
+    try:
+        tenant_profile = request.user.tenant_profile
+    except AttributeError:
+        messages.error(request, "You must have a tenant profile to view payments.")
+        return redirect('accounts:profile')
+
+    from payments.models import Payment
+
+    # Get all payments for this tenant
+    payments = Payment.objects.filter(tenant=tenant_profile).select_related(
+        'rental_agreement', 'room'
+    ).order_by('-payment_date')
+
+    # Calculate summary statistics
+    total_paid = payments.filter(status='completed').aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+
+    pending_amount = payments.filter(status='pending').aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+
+    failed_amount = payments.filter(status='failed').aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(payments, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_title': 'My Payment History',
+        'payments': payments,
+        'page_obj': page_obj,
+        'total_paid': total_paid,
+        'pending_amount': pending_amount,
+        'failed_amount': failed_amount,
+        'payment_count': payments.count(),
+        'completed_count': payments.filter(status='completed').count(),
+        'pending_count': payments.filter(status='pending').count(),
+        'failed_count': payments.filter(status='failed').count(),
+    }
+
+    return render(request, 'tenants/tenant_payments.html', context)
 

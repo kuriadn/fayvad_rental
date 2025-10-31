@@ -164,72 +164,6 @@ class RentalService:
             }
 
     @staticmethod
-    def create_rental_agreement(agreement_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Create new rental agreement
-        """
-        try:
-            from tenants.models import Tenant
-
-            tenant = Tenant.objects.get(id=agreement_data['tenant_id'])
-            room = Room.objects.get(id=agreement_data['room_id'])
-
-            # Validate room is available
-            if room.status != RoomStatus.AVAILABLE:
-                return {
-                    'success': False,
-                    'error': f'Room is not available (current status: {room.status})'
-                }
-
-            # Create agreement
-            agreement = RentalAgreement.objects.create(
-                tenant=tenant,
-                room=room,
-                start_date=agreement_data['start_date'],
-                end_date=agreement_data['end_date'],
-                rent_amount=agreement_data['rent_amount'],
-                deposit_amount=agreement_data.get('deposit_amount', 0),
-                status=agreement_data.get('status', 'draft'),
-                special_terms=agreement_data.get('special_terms'),
-                notice_period_days=agreement_data.get('notice_period_days', 30),
-            )
-
-            # Update room status if agreement is active
-            if agreement.status == 'active':
-                room.status = RoomStatus.OCCUPIED
-                room.save()
-
-                # Update tenant location
-                tenant.current_location = room.location
-                tenant.tenant_status = 'active'
-                tenant.save()
-
-            return {
-                'success': True,
-                'data': {
-                    'id': str(agreement.id),
-                    'agreement_number': agreement.agreement_number,
-                    'tenant_name': tenant.name,
-                    'room_number': room.room_number,
-                    'status': agreement.status,
-                    'created_at': agreement.created_at.isoformat(),
-                },
-                'message': 'Rental agreement created successfully'
-            }
-
-        except (Tenant.DoesNotExist, Room.DoesNotExist) as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
-        except Exception as e:
-            logger.error(f"Error creating rental agreement: {e}")
-            return {
-                'success': False,
-                'error': str(e)
-            }
-
-    @staticmethod
     def activate_agreement(agreement_id: str) -> Dict[str, Any]:
         """
         Activate a rental agreement
@@ -319,56 +253,6 @@ class RentalService:
             }
         except Exception as e:
             logger.error(f"Error terminating agreement {agreement_id}: {e}")
-            return {
-                'success': False,
-                'error': str(e)
-            }
-
-    @staticmethod
-    def get_workflow_status(agreement_id: str, user) -> Dict[str, Any]:
-        """
-        Get workflow status for rental agreement
-        """
-        try:
-            agreement = RentalAgreement.objects.get(id=agreement_id)
-
-            # Use the rental agreement workflow engine
-            from workflows.rental import RentalAgreementWorkflowEngine
-            workflow = RentalAgreementWorkflowEngine(agreement)
-
-            # Get current state and available events
-            current_state = workflow.get_current_state()
-            available_events = workflow._get_available_events(user)
-
-            # Get workflow history
-            from workflows.services import AuditLogService
-            workflow_history = AuditLogService.get_workflow_history('RentalAgreement', agreement_id)
-
-            # Get agreement progress
-            agreement_progress = workflow.get_agreement_progress()
-
-            return {
-                'success': True,
-                'data': {
-                    'current_state': current_state,
-                    'available_events': available_events,
-                    'workflow_history': workflow_history,
-                    'agreement_status': agreement.status,
-                    'agreement_number': agreement.agreement_number,
-                    'tenant_name': agreement.tenant.name if agreement.tenant else None,
-                    'room_info': f"{agreement.room.room_number} ({agreement.room.location.name})" if agreement.room else None,
-                    'progress': agreement_progress,
-                    'is_ready_for_activation': agreement_progress.get('is_ready_for_activation', False),
-                }
-            }
-
-        except RentalAgreement.DoesNotExist:
-            return {
-                'success': False,
-                'error': 'Rental agreement not found'
-            }
-        except Exception as e:
-            logger.error(f"Error getting rental agreement workflow status {agreement_id}: {e}")
             return {
                 'success': False,
                 'error': str(e)

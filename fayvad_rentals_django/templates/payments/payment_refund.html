@@ -6,11 +6,11 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'payments:payment_list' %}" class="text-gray-700 hover:text-accent-900">Payments</a></li>
+        <li><a href="{% url 'payments:payment_list' %}" class="text-gray-700 hover:text-blue-900">Payments</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'payments:payment_detail' payment.pk %}" class="text-gray-700 hover:text-accent-900">{{ payment.payment_number }}</a></li>
+        <li><a href="{% url 'payments:payment_detail' payment.pk %}" class="text-gray-700 hover:text-blue-900">{{ payment.payment_number }}</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">Refund</span></li>
     </ol>

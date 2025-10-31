@@ -6,7 +6,7 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">Maintenance</span></li>
     </ol>
@@ -22,7 +22,7 @@
             <p class="mt-1 text-sm text-gray-600">{{ total_requests }} total requests</p>
         </div>
         <div class="flex space-x-3">
-            <a href="{% url 'maintenance:maintenance_request_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent">
+            <a href="{% url 'maintenance:maintenance_request_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                 </svg>
@@ -143,7 +143,7 @@
                     </select>
                 </div>
                 <div class="flex items-end">
-                    <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent">
+                    <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                         Search
                     </button>
                 </div>
@@ -167,7 +167,7 @@
                         </div>
                         <div class="ml-4">
                             <div class="text-sm font-medium text-gray-900">
-                                <a href="{% url 'maintenance:maintenance_request_detail' request.pk %}" class="hover:text-accent-900">
+                                <a href="{% url 'maintenance:maintenance_request_detail' request.pk %}" class="hover:text-blue-900">
                                     {{ request.request_number }}
                                 </a>
                             </div>
@@ -200,7 +200,7 @@
                         <!-- Status Badge -->
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                             {% if request.status == 'completed' %}bg-green-100 text-green-800
-                            {% elif request.status == 'in_progress' %}bg-accent-100 text-accent-800
+                            {% elif request.status == 'in_progress' %}bg-accent-100 text-blue-800
                             {% elif request.status == 'pending' %}bg-yellow-100 text-yellow-800
                             {% else %}bg-gray-100 text-gray-800{% endif %}">
                             {{ request.get_status_display }}
@@ -262,14 +262,14 @@
         <div class="flex-1 flex justify-between sm:hidden">
             {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
-               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800">
+               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-primary-500 hover:bg-primary-600 text-white">
                 Previous
             </a>
             {% endif %}
 
             {% if page_obj.has_next %}
             <a href="?page={{ page_obj.next_page_number }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
-               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800">
+               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-primary-500 hover:bg-primary-600 text-white">
                 Next
             </a>
             {% endif %}
@@ -298,7 +298,7 @@
 
                     {% for num in page_obj.paginator.page_range %}
                         {% if page_obj.number == num %}
-                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-accent-50 text-sm font-medium text-accent-900">
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-accent-50 text-sm font-medium text-blue-900">
                             {{ num }}
                         </span>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}

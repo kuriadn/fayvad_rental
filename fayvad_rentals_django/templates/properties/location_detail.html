@@ -6,9 +6,9 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'properties:location_list' %}" class="text-gray-700 hover:text-accent-900">Locations</a></li>
+        <li><a href="{% url 'properties:location_list' %}" class="text-gray-700 hover:text-blue-900">Locations</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">{{ location.name }}</span></li>
     </ol>
@@ -25,7 +25,7 @@
                 <p class="text-gray-600 mt-1">{{ location.address }}, {{ location.city }}</p>
             </div>
             <div class="flex space-x-3">
-                <a href="{% url 'properties:location_update' location.pk %}" class="bg-accent text-white px-4 py-2 rounded-md hover:bg-accent text-sm">
+                <a href="{% url 'properties:location_update' location.pk %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm">
                     Edit Location
                 </a>
                 <a href="{% url 'properties:location_delete' location.pk %}" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm">
@@ -46,7 +46,7 @@
                     <div class="text-sm text-gray-600">Occupied</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-accent-900">{{ available_count }}</div>
+                    <div class="text-2xl font-bold text-blue-900">{{ available_count }}</div>
                     <div class="text-sm text-gray-600">Available</div>
                 </div>
                 <div class="text-center">
@@ -165,7 +165,7 @@
                     {% for room in rooms %}
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            <a href="{% url 'properties:room_detail' room.pk %}" class="text-accent-900 hover:text-accent-900">
+                            <a href="{% url 'properties:room_detail' room.pk %}" class="text-blue-900 hover:text-blue-900">
                                 {{ room.room_number }}
                             </a>
                         </td>
@@ -178,7 +178,7 @@
                                     Available
                                 </span>
                             {% elif room.status == 'occupied' %}
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-accent-100 text-accent-800">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-accent-100 text-blue-800">
                                     Occupied
                                 </span>
                             {% elif room.status == 'maintenance' %}
@@ -195,7 +195,7 @@
                             <span class="text-gray-500">TBD</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="{% url 'properties:room_detail' room.pk %}" class="text-accent-900 hover:text-accent-900 mr-3">View</a>
+                            <a href="{% url 'properties:room_detail' room.pk %}" class="text-blue-900 hover:text-blue-900 mr-3">View</a>
                             <a href="{% url 'properties:room_update' room.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
                         </td>
                     </tr>
@@ -211,7 +211,7 @@
             <h3 class="mt-2 text-sm font-medium text-gray-900">No rooms</h3>
             <p class="mt-1 text-sm text-gray-500">Get started by adding rooms to this location.</p>
             <div class="mt-6">
-                <a href="{% url 'properties:room_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent">
+                <a href="{% url 'properties:room_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                     <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                     </svg>
@@ -268,7 +268,7 @@
                     </div>
                     <p class="text-sm text-gray-600">Occupancy Rate</p>
                     <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-accent h-2 rounded-full" style="width: {% widthratio occupied_count room_count 100 %}%"></div>
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: {% widthratio occupied_count room_count 100 %}%"></div>
                     </div>
                 </div>
             </div>

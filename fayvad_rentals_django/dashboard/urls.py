@@ -16,8 +16,9 @@ urlpatterns = [
     path('maintenance/', views.dashboard_maintenance, name='dashboard_maintenance'),
     path('tenant/', views.dashboard_tenant, name='dashboard_tenant'),
     path('property/', views.dashboard_property, name='dashboard_property'),
-    path('audit-log/', views.audit_log_view, name='audit_log'),
 
     # API endpoints for real-time updates
     path('api/metrics/', views.dashboard_metrics_api, name='dashboard_metrics_api'),
+    path('api/alerts/', views.dashboard_alerts_api, name='dashboard_alerts_api'),
+    path('api/reports/', views.dashboard_reports_api, name='dashboard_reports_api'),
 ]

@@ -18,7 +18,11 @@ from .forms import (
 
 @login_required
 def maintenance_request_list(request):
-    """List all maintenance requests"""
+    """List all maintenance requests - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing maintenance management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access maintenance management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     requests = MaintenanceRequest.objects.select_related('tenant', 'room__location', 'created_by').all()
 
     # Filters
@@ -94,13 +98,8 @@ def maintenance_request_detail(request, pk):
         pk=pk
     )
 
-    # Get escalation history from audit logs
-    from workflows.services.audit import AuditLogService
-    escalation_history = AuditLogService.get_events(
-        instance_type='MaintenanceRequest',
-        instance_id=str(maintenance_request.id),
-        event_type='escalation'
-    )
+    # Escalation history simplified - removed complex audit logging
+    escalation_history = []
 
     context = {
         'page_title': f'Maintenance: {maintenance_request.request_number}',
@@ -111,7 +110,11 @@ def maintenance_request_detail(request, pk):
 
 @login_required
 def maintenance_request_create(request):
-    """Create new maintenance request"""
+    """Create new maintenance request - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing maintenance management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access maintenance management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     if request.method == 'POST':
         form = MaintenanceRequestForm(request.POST)
         if form.is_valid():
@@ -131,7 +134,11 @@ def maintenance_request_create(request):
 
 @login_required
 def maintenance_request_update(request, pk):
-    """Update existing maintenance request"""
+    """Update existing maintenance request - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing maintenance management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access maintenance management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     maintenance_request = get_object_or_404(MaintenanceRequest, pk=pk)
 
     if request.method == 'POST':
@@ -152,7 +159,11 @@ def maintenance_request_update(request, pk):
 
 @login_required
 def maintenance_request_delete(request, pk):
-    """Delete maintenance request"""
+    """Delete maintenance request - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing maintenance management
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        messages.error(request, 'Access denied. You cannot access maintenance management.')
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     maintenance_request = get_object_or_404(MaintenanceRequest, pk=pk)
 
     if request.method == 'POST':
@@ -176,7 +187,6 @@ def maintenance_request_assign(request, pk):
 
     # Use workflow service to check permissions and get available actions
     from core_services.maintenance_service import MaintenanceService
-    workflow_status = MaintenanceService.get_workflow_status(str(maintenance_request.id), request.user)
 
     if not workflow_status['success']:
         messages.error(request, 'Unable to load workflow status.')
@@ -307,20 +317,48 @@ def maintenance_request_cancel(request, pk):
 
 @login_required
 def tenant_maintenance_requests(request, tenant_pk):
-    """View maintenance requests for a specific tenant"""
-    from tenants.models import Tenant
+    """View maintenance requests (complaints) for a specific tenant - Tenant can only view their own"""
+    # Security check: Ensure tenant can only view their own maintenance requests
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        if str(request.user.tenant_profile.id) != str(tenant_pk):
+            messages.error(request, 'Access denied. You can only view your own maintenance requests.')
+            return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
+    # Staff can view any tenant's maintenance requests (no additional check needed)
+    from tenants.models import Tenant, Complaint
     tenant = get_object_or_404(Tenant, pk=tenant_pk)
 
-    maintenance_requests = MaintenanceRequest.objects.filter(
+    # For tenants, show their complaints as maintenance requests
+    maintenance_requests = Complaint.objects.filter(
         tenant=tenant
-    ).select_related('room__location', 'created_by').order_by('-requested_date')
+    ).select_related('room__location').order_by('-created_at')
+
+    # Create a mapping for status compatibility
+    for complaint in maintenance_requests:
+        # Map complaint status to maintenance request status for display
+        if complaint.status == 'open':
+            complaint.status = 'pending'
+        elif complaint.status == 'investigating':
+            complaint.status = 'in_progress'
+        elif complaint.status == 'resolved':
+            complaint.status = 'completed'
+        elif complaint.status == 'closed':
+            complaint.status = 'completed'
+        else:
+            complaint.status = 'pending'
+
+        # Add compatibility attributes
+        complaint.request_number = complaint.complaint_number or f"COMP-{complaint.id}"
+        complaint.title = complaint.subject
+        complaint.created_by = None  # Complaints don't have created_by in the same way
+        complaint.scheduled_date = None
+        complaint.estimated_cost = None
 
     context = {
         'page_title': f'Maintenance - {tenant.name}',
         'tenant': tenant,
         'maintenance_requests': maintenance_requests,
         'total_requests': maintenance_requests.count(),
-        'pending_requests': maintenance_requests.filter(status='pending').count(),
-        'completed_requests': maintenance_requests.filter(status='completed').count(),
+        'pending_requests': sum(1 for r in maintenance_requests if r.status == 'pending'),
+        'completed_requests': sum(1 for r in maintenance_requests if r.status == 'completed'),
     }
     return render(request, 'maintenance/tenant_maintenance_requests.html', context)

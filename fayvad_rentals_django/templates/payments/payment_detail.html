@@ -6,9 +6,9 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'payments:payment_list' %}" class="text-gray-700 hover:text-accent-900">Payments</a></li>
+        <li><a href="{% url 'payments:payment_list' %}" class="text-gray-700 hover:text-blue-900">Payments</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">{{ payment.payment_number }}</span></li>
     </ol>
@@ -38,7 +38,7 @@
             </p>
         </div>
         <div class="flex space-x-3">
-            <a href="{% url 'payments:payment_update' payment.pk %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800">
+            <a href="{% url 'payments:payment_update' payment.pk %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-primary-500 hover:bg-primary-600 text-white">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
@@ -98,7 +98,7 @@
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Tenant</dt>
                     <dd class="mt-1 text-sm text-gray-900">
-                        <a href="#" class="text-accent-900 hover:text-accent-900">{{ payment.tenant.name }}</a>
+                        <a href="#" class="text-blue-900 hover:text-blue-900">{{ payment.tenant.name }}</a>
                     </dd>
                 </div>
                 {% endif %}
@@ -106,7 +106,7 @@
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Rental Agreement</dt>
                     <dd class="mt-1 text-sm text-gray-900">
-                        <a href="#" class="text-accent-900 hover:text-accent-900">{{ payment.rental_agreement }}</a>
+                        <a href="#" class="text-blue-900 hover:text-blue-900">{{ payment.rental_agreement }}</a>
                     </dd>
                 </div>
                 {% endif %}
@@ -114,7 +114,7 @@
                 <div>
                     <dt class="text-sm font-medium text-gray-500">Room</dt>
                     <dd class="mt-1 text-sm text-gray-900">
-                        <a href="#" class="text-accent-900 hover:text-accent-900">{{ payment.room.room_number }}</a>
+                        <a href="#" class="text-blue-900 hover:text-blue-900">{{ payment.room.room_number }}</a>
                     </dd>
                 </div>
                 {% endif %}
@@ -159,843 +159,65 @@
         </div>
     </div>
 
-    <!-- Payment Workflow Management -->
-    {% load static %}
-    <div id="workflow-section" class="bg-white shadow-sm rounded-lg overflow-hidden">
+    <!-- Actions Section - Simplified -->
+    {% if user.is_staff or user.is_superuser %}
+    <div class="bg-white shadow-sm rounded-lg">
         <!-- Header with Status -->
-        <div class="bg-gradient-to-r from-accent-50 to-primary-50 px-6 py-4 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="flex-shrink-0">
-                        <svg class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900">Payment Workflow</h3>
-                        <p class="text-sm text-gray-600">Track verification and approval progress</p>
-                    </div>
-                </div>
-                <div id="current-status" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold
-                    {% if payment.status == 'completed' %}bg-green-100 text-green-800 border border-green-200
-                    {% elif payment.status == 'pending' %}bg-blue-100 text-blue-800 border border-blue-200
-                    {% elif payment.status == 'failed' %}bg-red-100 text-red-800 border border-red-200
-                    {% else %}bg-gray-100 text-gray-800 border border-gray-200{% endif %}">
-                    <span class="w-2 h-2 rounded-full mr-2
-                        {% if payment.status == 'completed' %}bg-green-500
-                        {% elif payment.status == 'pending' %}bg-blue-500
-                        {% elif payment.status == 'failed' %}bg-red-500
-                        {% else %}bg-gray-500{% endif %}"></span>
-                    {{ payment.get_status_display|title }}
-                </div>
-            </div>
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Actions</h3>
         </div>
-
         <div class="px-6 py-4">
-            <!-- Progress & Verification Status -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <!-- Verification Status -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-gray-600">Verification Status</span>
-                        <span id="verification-status" class="text-sm font-semibold text-gray-900">Loading...</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div id="verification-progress" class="bg-accent-600 h-2 rounded-full transition-all duration-300"></div>
-                    </div>
-                </div>
-
-                <!-- Amount -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-gray-600">Payment Amount</span>
-                        <span class="text-sm font-semibold text-gray-900">KSh {{ payment.amount|floatformat:2|intcomma }}</span>
-                    </div>
-                    <div class="text-sm text-gray-600">
-                        {{ payment.payment_method|title }} • {{ payment.reference_number }}
-                    </div>
-                </div>
-
-                <!-- Days Pending -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-gray-600">Days Pending</span>
-                        <span class="text-sm font-semibold text-gray-900">{{ payment.days_pending }}</span>
-                    </div>
-                    <div class="text-sm text-gray-600">
-                        Created {{ payment.created_at|timesince }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Risk Assessment (if applicable) -->
-            <div class="mb-6" id="risk-score-section" style="display: none;">
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-yellow-800">Risk Assessment</span>
-                        <span id="risk-score" class="text-sm font-semibold text-yellow-900">Loading...</span>
-                    </div>
-                    <div class="w-full bg-yellow-200 rounded-full h-2">
-                        <div id="risk-progress" class="bg-yellow-600 h-2 rounded-full transition-all duration-300"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Available Actions -->
-            <div class="mb-6">
-                <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                    <svg class="w-4 h-4 mr-2 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                    Available Actions
-                </h4>
-                <div id="workflow-actions" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div class="text-sm text-gray-500 col-span-full text-center py-4">Loading available actions...</div>
-                </div>
-            </div>
-
-            <!-- Workflow Timeline -->
-            <div>
-                <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                    <svg class="w-4 h-4 mr-2 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Activity Timeline
-                </h4>
-                <div id="workflow-history" class="space-y-3 max-h-60 overflow-y-auto">
-                    <div class="text-sm text-gray-500 text-center py-4">Loading timeline...</div>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {% if payment.status == "pending" %}
+                <form method="post" action="{% url "core_services:workflow_transition" "payment" payment.id %}" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="new_status" value="completed">
+                    <input type="hidden" name="notes" value="Payment completed successfully">
+                    <button type="submit" class="group relative bg-white border-2 border-blue-200 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 active:bg-blue-100 w-full">
+                        <div class="flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <div class="text-sm font-semibold text-blue-900 text-center group-hover:text-blue-800">Complete Payment</div>
+                    </button>
+                </form>
+                <form method="post" action="{% url "core_services:workflow_transition" "payment" payment.id %}" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="new_status" value="failed">
+                    <input type="hidden" name="notes" value="Payment failed">
+                    <button type="submit" class="group relative bg-white border-2 border-blue-200 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 active:bg-blue-100 w-full">
+                        <div class="flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </div>
+                        <div class="text-sm font-semibold text-blue-900 text-center group-hover:text-blue-800">Mark as Failed</div>
+                    </button>
+                </form>
+                {% elif payment.status == "failed" %}
+                <form method="post" action="{% url "core_services:workflow_transition" "payment" payment.id %}" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="new_status" value="pending">
+                    <input type="hidden" name="notes" value="Retry payment processing">
+                    <button type="submit" class="group relative bg-white border-2 border-blue-200 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 active:bg-blue-100 w-full">
+                        <div class="flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </div>
+                        <div class="text-sm font-semibold text-blue-900 text-center group-hover:text-blue-800">Retry Payment</div>
+                    </button>
+                </form>
+                {% endif %}
             </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- Ensure CSRF token is available for AJAX requests -->
     <form style="display: none;">
         {% csrf_token %}
     </form>
 
-    <script>
-        // Load workflow status when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            loadWorkflowStatus();
-        });
-
-        function loadWorkflowStatus() {
-            const instanceId = '{{ payment.id }}';
-
-            // Load workflow status
-            fetch(`/api/workflows/payment/${instanceId}/status/`, {
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    updateWorkflowUI(data.data);
-                } else {
-                    console.error('Failed to load workflow status:', data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error loading workflow status:', error);
-            });
-        }
-
-                function updateWorkflowUI(workflowData) {
-                    // Update verification status and progress bar
-                    const verificationElement = document.getElementById('verification-status');
-                    const verificationProgress = document.getElementById('verification-progress');
-                    const verificationStatus = workflowData.verification_status;
-
-                    if (verificationStatus) {
-                        let verificationText = verificationStatus.status.replace('_', ' ').toUpperCase();
-                        let progressPercent = 0;
-
-                        if (verificationStatus.status === 'verified' || verificationStatus.status === 'completed') {
-                            verificationText = 'VERIFIED';
-                            verificationElement.className = 'text-sm font-semibold text-green-600';
-                            verificationProgress.className = 'bg-green-600 h-2 rounded-full transition-all duration-300';
-                            progressPercent = 100;
-                        } else if (verificationStatus.status === 'rejected') {
-                            verificationText = 'REJECTED';
-                            verificationElement.className = 'text-sm font-semibold text-red-600';
-                            verificationProgress.className = 'bg-red-600 h-2 rounded-full transition-all duration-300';
-                            progressPercent = 100; // Show full bar for completed rejection
-                        } else if (verificationStatus.status === 'pending_approval') {
-                            verificationText = 'PENDING APPROVAL';
-                            verificationElement.className = 'text-sm font-semibold text-blue-600';
-                            verificationProgress.className = 'bg-blue-600 h-2 rounded-full transition-all duration-300';
-                            progressPercent = 75; // 75% complete
-                        } else {
-                            verificationText = 'PENDING VERIFICATION';
-                            verificationElement.className = 'text-sm font-semibold text-yellow-600';
-                            verificationProgress.className = 'bg-accent-600 h-2 rounded-full transition-all duration-300';
-                            progressPercent = 25; // 25% complete
-                        }
-
-                        verificationElement.textContent = verificationText;
-                        verificationProgress.style.width = `${progressPercent}%`;
-                    }
-
-                    // Update risk score if available
-                    const riskData = workflowData.risk_score;
-                    if (riskData && riskData.score > 0) {
-                        const riskElement = document.getElementById('risk-score');
-                        const riskSection = document.getElementById('risk-score-section');
-                        const riskProgress = document.getElementById('risk-progress');
-
-                        let riskText = `Score: ${riskData.score}`;
-                        let riskPercent = 0;
-
-                        if (riskData.level === 'high') {
-                            riskText += ' (High Risk)';
-                            riskElement.className = 'text-sm font-semibold text-red-600';
-                            riskProgress.className = 'bg-red-600 h-2 rounded-full transition-all duration-300';
-                            riskPercent = 100;
-                        } else if (riskData.level === 'medium') {
-                            riskText += ' (Medium Risk)';
-                            riskElement.className = 'text-sm font-semibold text-orange-600';
-                            riskProgress.className = 'bg-orange-600 h-2 rounded-full transition-all duration-300';
-                            riskPercent = 60;
-                        } else {
-                            riskText += ' (Low Risk)';
-                            riskElement.className = 'text-sm font-semibold text-green-600';
-                            riskProgress.className = 'bg-green-600 h-2 rounded-full transition-all duration-300';
-                            riskPercent = 20;
-                        }
-
-                        riskElement.textContent = riskText;
-                        riskProgress.style.width = `${riskPercent}%`;
-                        riskSection.style.display = 'block';
-                    }
-
-                    // Update available actions
-                    const actionsElement = document.getElementById('workflow-actions');
-                    const availableEvents = workflowData.available_events || [];
-
-                    if (availableEvents.length > 0) {
-                        let actionsHtml = '';
-                        availableEvents.forEach(event => {
-                            const buttonClass = getActionButtonClass(event);
-                            const buttonIcon = getActionButtonIcon(event);
-                            const buttonText = formatActionName(event);
-
-                            actionsHtml += `
-                                <button onclick="performWorkflowAction('${event}')"
-                                        class="group relative bg-white border-2 border-accent-200 rounded-lg p-4 hover:border-accent-500 hover:bg-accent-50 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 active:bg-accent-100">
-                                    <div class="flex items-center justify-center mb-2">
-                                        <div class="${buttonIcon}"></div>
-                                    </div>
-                                    <div class="text-sm font-semibold text-accent-900 text-center group-hover:text-accent-800">${buttonText}</div>
-                                </button>
-                            `;
-                        });
-                        actionsElement.innerHTML = actionsHtml;
-                    } else {
-                        actionsElement.innerHTML = `
-                            <div class="col-span-full text-center py-8">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <p class="mt-2 text-sm text-gray-500">All available actions completed</p>
-                            </div>
-                        `;
-                    }
-
-                    // Update workflow timeline
-                    updateWorkflowTimeline(workflowData.workflow_history || []);
-                }
-
-                function getActionButtonIcon(event) {
-                    const iconClasses = 'w-6 h-6';
-
-                    switch(event) {
-                        case 'submit_for_verification':
-                            return `<svg class="${iconClasses} text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>`;
-                        case 'verify_payment_completed':
-                            return `<svg class="${iconClasses} text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
-                        case 'verify_payment_failed':
-                            return `<svg class="${iconClasses} text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
-                        case 'approve_payment':
-                            return `<svg class="${iconClasses} text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
-                        case 'reject_payment':
-                            return `<svg class="${iconClasses} text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
-                        case 'request_more_info':
-                            return `<svg class="${iconClasses} text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
-                        case 'resubmit_payment':
-                            return `<svg class="${iconClasses} text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>`;
-                        case 'process_refund':
-                            return `<svg class="${iconClasses} text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>`;
-                        case 'mark_as_disputed':
-                            return `<svg class="${iconClasses} text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>`;
-                        case 'cancel_payment':
-                            return `<svg class="${iconClasses} text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
-                        default:
-                            return `<svg class="${iconClasses} text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`;
-                    }
-                }
-
-                function updateWorkflowTimeline(history) {
-                    const historyElement = document.getElementById('workflow-history');
-
-                    if (history && history.length > 0) {
-                        let timelineHtml = '';
-
-                        // Sort by timestamp (most recent first)
-                        history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-                        history.forEach((item, index) => {
-                            const timestamp = new Date(item.timestamp);
-                            const timeAgo = getTimeAgo(timestamp);
-                            const isRecent = index === 0;
-
-                            timelineHtml += `
-                                <div class="flex items-start space-x-3 ${isRecent ? 'bg-accent-50 p-3 rounded-lg border border-accent-200' : ''}">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-8 h-8 rounded-full ${getTimelineIconBg(item.event_type)} flex items-center justify-center">
-                                            ${getTimelineIcon(item.event_type)}
-                                        </div>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex items-center justify-between">
-                                            <p class="text-sm font-medium text-gray-900">
-                                                ${formatEventName(item.event_name || item.event_type)}
-                                            </p>
-                                            <p class="text-xs text-gray-500">${timeAgo}</p>
-                                        </div>
-                                        <p class="text-sm text-gray-600">by ${item.user}</p>
-                                        ${item.notes ? `<p class="text-xs text-gray-500 mt-1">${item.notes}</p>` : ''}
-                                        ${item.old_state && item.new_state ? `<p class="text-xs text-accent-600 mt-1">${item.old_state} → ${item.new_state}</p>` : ''}
-                                    </div>
-                                </div>
-                            `;
-                        });
-
-                        historyElement.innerHTML = timelineHtml;
-                    } else {
-                        historyElement.innerHTML = `
-                            <div class="text-center py-8">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <p class="mt-2 text-sm text-gray-500">No activity yet</p>
-                            </div>
-                        `;
-                    }
-                }
-
-                function getTimelineIconBg(eventType) {
-                    switch(eventType) {
-                        case 'transition': return 'bg-blue-100';
-                        case 'validation': return 'bg-green-100';
-                        case 'notification': return 'bg-purple-100';
-                        case 'error': return 'bg-red-100';
-                        default: return 'bg-gray-100';
-                    }
-                }
-
-                function getTimelineIcon(eventType) {
-                    const iconClasses = 'w-4 h-4';
-                    switch(eventType) {
-                        case 'transition':
-                            return `<svg class="${iconClasses} text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>`;
-                        case 'validation':
-                            return `<svg class="${iconClasses} text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
-                        case 'notification':
-                            return `<svg class="${iconClasses} text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5v-5a2 2 0 00-2-2h-3m-5 8h5v-5a2 2 0 00-2-2h-3m-5 8h5v-5a2 2 0 00-2-2h-3"/></svg>`;
-                        case 'error':
-                            return `<svg class="${iconClasses} text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>`;
-                        default:
-                            return `<svg class="${iconClasses} text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
-                    }
-                }
-
-                function formatEventName(eventName) {
-                    return eventName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                }
-
-                function getTimeAgo(date) {
-                    const now = new Date();
-                    const diffInSeconds = Math.floor((now - date) / 1000);
-
-                    if (diffInSeconds < 60) return 'Just now';
-                    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-                    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-                    return `${Math.floor(diffInSeconds / 86400)}d ago`;
-                }
-
-        function getActionButtonClass(event) {
-            switch(event) {
-                case 'approve_payment':
-                    return 'text-white bg-green-600 hover:bg-green-700';
-                case 'verify_payment':
-                    return 'text-white bg-blue-600 hover:bg-blue-700';
-                case 'reject_payment':
-                    return 'text-white bg-red-600 hover:bg-red-700';
-                case 'process_refund':
-                    return 'text-white bg-orange-600 hover:bg-orange-700';
-                default:
-                    return 'text-white bg-accent hover:bg-accent-800';
-            }
-        }
-
-        function formatActionName(event) {
-            return event.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        }
-
-        function performWorkflowAction(event) {
-            // Show the appropriate modal for the action
-            showWorkflowActionModal(event);
-        }
-
-        function showWorkflowActionModal(action) {
-            const modal = document.getElementById('workflow-action-modal');
-            const modalTitle = document.getElementById('workflow-modal-title');
-            const modalContent = document.getElementById('workflow-modal-content');
-
-            // Configure modal based on action
-            if (action === 'submit_for_verification') {
-                modalTitle.textContent = 'Submit for Verification';
-                modalContent.innerHTML = `
-                    <form id="submit-for-verification-form" class="space-y-6">
-                        <div class="bg-info-light border border-info dark:border-info-dark rounded-lg p-4">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0">
-                                    <svg class="w-5 h-5 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <h4 class="text-sm font-medium text-info-dark">Submit for Verification</h4>
-                                    <p class="text-sm text-info-dark mt-1">Send this payment for staff review. Provide additional details to help with the verification process.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="submission_notes" class="block text-sm font-semibold text-gray-900 mb-2">
-                                Submission Notes <span class="text-gray-500">(Optional)</span>
-                            </label>
-                            <textarea id="submission_notes" name="submission_notes" rows="4"
-                                      class="block w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-accent-500 focus:ring-accent-500 transition-colors resize-none"
-                                      placeholder="Add any additional information, context, or supporting details for verification"></textarea>
-                            <p class="mt-1 text-sm text-gray-600">Help staff understand the context of this payment submission.</p>
-                        </div>
-                    </form>
-                `;
-            } else if (action === 'verify_payment_completed') {
-                modalTitle.textContent = 'Verify Payment Completed';
-                modalContent.innerHTML = `
-                    <form id="verify-payment-completed-form" class="space-y-4">
-                        <div class="bg-green-50 p-4 rounded-md">
-                            <p class="text-sm text-green-800">
-                                Confirm that this payment has been successfully received and processed.
-                            </p>
-                        </div>
-                        <div>
-                            <label for="transaction_id" class="block text-sm font-medium text-gray-700">Transaction ID</label>
-                            <input type="text" id="transaction_id" name="transaction_id"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                   placeholder="Enter transaction/reference ID">
-                            <p class="mt-1 text-sm text-gray-500">Optional transaction ID for reference</p>
-                        </div>
-                        <div>
-                            <label for="verification_notes" class="block text-sm font-medium text-gray-700">Verification Notes (Optional)</label>
-                            <textarea id="verification_notes" name="verification_notes" rows="3"
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                      placeholder="Add any notes about the verification process"></textarea>
-                        </div>
-                    </form>
-                `;
-            } else if (action === 'verify_payment_failed') {
-                modalTitle.textContent = 'Verify Payment Failed';
-                modalContent.innerHTML = `
-                    <form id="verify-payment-failed-form" class="space-y-4">
-                        <div class="bg-red-50 p-4 rounded-md">
-                            <p class="text-sm text-red-800">
-                                Mark this payment as failed. Provide details about why verification failed.
-                            </p>
-                        </div>
-                        <div>
-                            <label for="failure_reason" class="block text-sm font-medium text-gray-700">Failure Reason <span class="text-red-500">*</span></label>
-                            <select id="failure_reason" name="failure_reason" required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500">
-                                <option value="">Select reason...</option>
-                                <option value="insufficient_funds">Insufficient Funds</option>
-                                <option value="invalid_amount">Invalid Amount</option>
-                                <option value="transaction_declined">Transaction Declined</option>
-                                <option value="incorrect_details">Incorrect Payment Details</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="verification_notes" class="block text-sm font-medium text-gray-700">Additional Notes</label>
-                            <textarea id="verification_notes" name="verification_notes" rows="3"
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                      placeholder="Provide additional details about the failure"></textarea>
-                        </div>
-                    </form>
-                `;
-            } else if (action === 'reject_payment') {
-                modalTitle.textContent = 'Reject Payment';
-                modalContent.innerHTML = `
-                    <form id="reject-payment-form" class="space-y-4">
-                        <div class="bg-red-50 p-4 rounded-md">
-                            <p class="text-sm text-red-800">
-                                Provide a reason for rejecting this payment. The tenant will be notified.
-                            </p>
-                        </div>
-                        <div>
-                            <label for="reason" class="block text-sm font-medium text-gray-700">Rejection Reason <span class="text-red-500">*</span></label>
-                            <textarea id="reason" name="reason" required rows="3"
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                      placeholder="Explain why this payment is being rejected"></textarea>
-                        </div>
-                    </form>
-                `;
-            } else if (action === 'approve_payment') {
-                modalTitle.textContent = 'Approve Payment';
-                modalContent.innerHTML = `
-                    <form id="approve-payment-form" class="space-y-4">
-                        <div class="bg-green-50 p-4 rounded-md">
-                            <p class="text-sm text-green-800">
-                                Approve this payment for final processing.
-                            </p>
-                        </div>
-                        <div>
-                            <label for="approval_notes" class="block text-sm font-medium text-gray-700">Approval Notes (Optional)</label>
-                            <textarea id="approval_notes" name="approval_notes" rows="3"
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                      placeholder="Add any notes about the approval"></textarea>
-                        </div>
-                    </form>
-                `;
-            } else if (action === 'process_refund') {
-                modalTitle.textContent = 'Process Refund';
-                modalContent.innerHTML = `
-                    <form id="process-refund-form" class="space-y-4">
-                        <div>
-                            <label for="refund_amount" class="block text-sm font-medium text-gray-700">Refund Amount</label>
-                            <input type="number" id="refund_amount" name="refund_amount" step="0.01" min="0" max="{{ payment.amount|default:0 }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                   placeholder="Enter refund amount (defaults to full payment amount)">
-                            <p class="mt-1 text-sm text-gray-500">Leave empty to refund the full payment amount of KSh {{ payment.amount|floatformat:2|intcomma }}</p>
-                        </div>
-                        <div>
-                            <label for="refund_reason" class="block text-sm font-medium text-gray-700">Refund Reason <span class="text-red-500">*</span></label>
-                            <textarea id="refund_reason" name="refund_reason" required rows="3"
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                      placeholder="Explain why this refund is being processed"></textarea>
-                        </div>
-                    </form>
-                `;
-            } else if (action === 'request_more_info') {
-                modalTitle.textContent = 'Request More Information';
-                modalContent.innerHTML = `
-                    <form id="request-info-form" class="space-y-4">
-                        <div>
-                            <label for="info_request" class="block text-sm font-medium text-gray-700">Information Requested <span class="text-red-500">*</span></label>
-                            <textarea id="info_request" name="info_request" required rows="4"
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                      placeholder="Specify what additional information is needed from the tenant"></textarea>
-                        </div>
-                    </form>
-                `;
-            } else if (action === 'mark_as_disputed') {
-                modalTitle.textContent = 'Mark as Disputed';
-                modalContent.innerHTML = `
-                    <form id="mark-disputed-form" class="space-y-4">
-                        <div class="bg-yellow-50 p-4 rounded-md">
-                            <p class="text-sm text-yellow-800">
-                                Mark this payment as disputed. This will require manager intervention.
-                            </p>
-                        </div>
-                        <div>
-                            <label for="dispute_reason" class="block text-sm font-medium text-gray-700">Dispute Reason <span class="text-red-500">*</span></label>
-                            <textarea id="dispute_reason" name="dispute_reason" required rows="3"
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                      placeholder="Explain the nature of the dispute"></textarea>
-                        </div>
-                    </form>
-                `;
-            } else if (action === 'resubmit_payment') {
-                modalTitle.textContent = 'Resubmit Payment';
-                modalContent.innerHTML = `
-                    <form id="resubmit-payment-form" class="space-y-4">
-                        <div class="bg-blue-50 p-4 rounded-md">
-                            <p class="text-sm text-blue-800">
-                                Resubmit this payment with corrected information after addressing the previous issues.
-                            </p>
-                        </div>
-                        <div>
-                            <label for="corrected_amount" class="block text-sm font-medium text-gray-700">Corrected Amount (if changed)</label>
-                            <input type="number" id="corrected_amount" name="corrected_amount" step="0.01" min="0"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                   placeholder="Leave empty if amount is correct">
-                            <p class="mt-1 text-sm text-gray-500">Only enter if the payment amount needs correction</p>
-                        </div>
-                        <div>
-                            <label for="reference_number" class="block text-sm font-medium text-gray-700">Corrected Reference Number</label>
-                            <input type="text" id="reference_number" name="reference_number"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                   placeholder="Updated reference/transaction number">
-                        </div>
-                        <div>
-                            <label for="resubmission_notes" class="block text-sm font-medium text-gray-700">Resubmission Notes <span class="text-red-500">*</span></label>
-                            <textarea id="resubmission_notes" name="resubmission_notes" required rows="3"
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                      placeholder="Explain what corrections were made"></textarea>
-                        </div>
-                    </form>
-                `;
-            } else if (action === 'cancel_payment') {
-                modalTitle.textContent = 'Cancel Payment';
-                modalContent.innerHTML = `
-                    <form id="cancel-payment-form" class="space-y-4">
-                        <div class="bg-red-50 p-4 rounded-md">
-                            <p class="text-sm text-red-800">
-                                Cancel this payment permanently. This action cannot be undone.
-                            </p>
-                        </div>
-                        <div>
-                            <label for="cancellation_reason" class="block text-sm font-medium text-gray-700">Cancellation Reason <span class="text-red-500">*</span></label>
-                            <textarea id="cancellation_reason" name="cancellation_reason" required rows="3"
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                                      placeholder="Explain why this payment is being cancelled"></textarea>
-                        </div>
-                    </form>
-                `;
-            }
-
-            // Show modal
-            modal.classList.remove('hidden');
-
-            // Attach event handlers after modal content is created
-            setTimeout(() => {
-                // Modal event handlers
-                const closeBtn = document.getElementById('close-workflow-modal');
-                const cancelBtn = document.getElementById('cancel-workflow-action');
-                const submitBtn = document.getElementById('submit-workflow-action');
-
-                if (closeBtn) closeBtn.addEventListener('click', closeWorkflowModal);
-                if (cancelBtn) cancelBtn.addEventListener('click', closeWorkflowModal);
-                if (submitBtn) submitBtn.addEventListener('click', submitWorkflowAction);
-
-                // Close modal when clicking outside
-                modal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        closeWorkflowModal();
-                    }
-                });
-
-                // Close modal with Escape key
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') {
-                        if (!modal.classList.contains('hidden')) {
-                            closeWorkflowModal();
-                        }
-                    }
-                });
-
-                // Focus first input
-                const firstInput = modalContent.querySelector('input, textarea');
-                if (firstInput) firstInput.focus();
-            }, 100);
-        }
-
-        // Toggle workflow history
-        document.getElementById('toggle-history').addEventListener('click', function() {
-            const historyElement = document.getElementById('workflow-history');
-            const isHidden = historyElement.classList.contains('hidden');
-
-            if (isHidden) {
-                loadWorkflowHistory();
-                historyElement.classList.remove('hidden');
-                this.textContent = 'Hide Workflow History';
-            } else {
-                historyElement.classList.add('hidden');
-                this.textContent = 'Show Workflow History';
-            }
-        });
-
-        function loadWorkflowHistory() {
-            const instanceId = '{{ payment.id }}';
-            const historyElement = document.getElementById('workflow-history');
-
-            fetch(`/api/workflows/payment/${instanceId}/history/`, {
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.data.length > 0) {
-                    let historyHtml = '';
-                    data.data.forEach(item => {
-                        const timestamp = new Date(item.timestamp).toLocaleString();
-                        historyHtml += `
-                            <div class="flex items-start space-x-3 p-2 bg-gray-50 rounded">
-                                <div class="flex-1">
-                                    <div class="text-sm font-medium text-gray-900">
-                                        ${item.event_name.replace(/_/g, ' ')}
-                                    </div>
-                                    <div class="text-xs text-gray-500">
-                                        ${item.user} • ${timestamp}
-                                    </div>
-                                    ${item.notes ? `<div class="text-xs text-gray-600 mt-1">${item.notes}</div>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    });
-                    historyElement.innerHTML = historyHtml;
-                } else {
-                    historyElement.innerHTML = '<div class="text-sm text-gray-500">No workflow history available</div>';
-                }
-            })
-            .catch(error => {
-                console.error('Error loading history:', error);
-                historyElement.innerHTML = '<div class="text-sm text-red-600">Error loading history</div>';
-            });
-        }
-
-
-        function closeWorkflowModal() {
-            document.getElementById('workflow-action-modal').classList.add('hidden');
-        }
-
-        function submitWorkflowAction() {
-            const modal = document.getElementById('workflow-action-modal');
-            const modalContent = document.getElementById('workflow-modal-content');
-            const form = modalContent.querySelector('form');
-
-            if (!form) return;
-
-            // Validate form
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
-            // Show loading state
-            const submitBtn = document.getElementById('submit-workflow-action');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Processing...';
-            submitBtn.disabled = true;
-
-            // Collect form data
-            const formData = new FormData(form);
-            const actionData = {};
-            for (let [key, value] of formData.entries()) {
-                // Include all non-empty values, handle amount fields specially
-                if (value && value.trim()) {
-                    actionData[key] = key.includes('amount') ? parseFloat(value) : value.trim();
-                }
-            }
-
-            // Determine action type from form ID
-            let action = form.id.replace('-form', '').replace(/-/g, '_');
-
-            // Map form IDs to proper workflow action names
-            const formIdToActionMap = {
-                'submit_for_verification': 'submit_for_verification',
-                'verify_payment_completed': 'verify_payment_completed',
-                'verify_payment_failed': 'verify_payment_failed',
-                'approve_payment': 'approve_payment',
-                'reject_payment': 'reject_payment',
-                'request_more_info': 'request_more_info',
-                'resubmit_payment': 'resubmit_payment',
-                'process_refund': 'process_refund',
-                'cancel_payment': 'cancel_payment',
-                'mark_as_disputed': 'mark_as_disputed'
-            };
-
-            action = formIdToActionMap[action] || action;
-
-            const instanceId = '{{ payment.id }}';
-
-            // Perform actual workflow transition via API
-            fetch(`/api/workflows/payment/${instanceId}/action/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: action,
-                    data: actionData
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.error || `HTTP ${response.status}: ${response.statusText}`); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    // Close modal and reload page
-                    closeWorkflowModal();
-                    location.reload();
-                } else {
-                    alert('Action failed: ' + (data.error || 'Unknown error'));
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Error performing workflow action:', error);
-                alert('An error occurred while performing the action: ' + error.message);
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            });
-        }
-    </script>
-
-    <!-- Workflow Action Modal -->
-    <div id="workflow-action-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-20 mx-auto p-6 border w-full max-w-lg shadow-2xl rounded-xl bg-white">
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 id="workflow-modal-title" class="text-xl font-semibold text-gray-900">Workflow Action</h3>
-                        <p class="text-sm text-gray-600">Complete the required information</p>
-                    </div>
-                </div>
-                <button id="close-workflow-modal" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Modal Content -->
-            <div id="workflow-modal-content" class="mb-6">
-                <!-- Form content will be inserted here -->
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                <button id="cancel-workflow-action" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors">
-                    Cancel
-                </button>
-                <button id="submit-workflow-action" class="px-6 py-2.5 bg-accent text-white rounded-lg hover:bg-accent-800 font-medium transition-colors shadow-sm">
-                    <span class="flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Execute Action
-                    </span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}

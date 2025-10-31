@@ -7,7 +7,7 @@
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
         <li class="inline-flex items-center">
-            <a href="{% url 'dashboard:dashboard_overview' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-accent-900">
+            <a href="{% url 'dashboard:dashboard_overview' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-900">
                 <svg class="w-3 h-3 mr-2.5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2A1 1 0 0 0 1 10h2v10a1 1 0 0 0 1 1h10v-6a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v4H4v-9.414l6-6 6 6V18h-3v-4a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v6h-2V10h2a1 1 0 0 0 .707-.293Z"/>
                 </svg>
@@ -84,7 +84,7 @@
                     </span>
                 </div>
                 <button onclick="openReportModal('{{ report.id }}', '{{ report.name }}', {{ report.formats|safe }})"
-                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
                     Generate Report
                 </button>
             </div>
@@ -142,7 +142,7 @@
                     <button type="button" onclick="closeReportModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200">
                         Cancel
                     </button>
-                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-accent border border-transparent rounded-md hover:bg-accent">
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
                         Generate Report
                     </button>
                 </div>

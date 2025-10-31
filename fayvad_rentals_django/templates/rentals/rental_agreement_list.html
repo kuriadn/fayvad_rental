@@ -10,7 +10,7 @@
             <p class="mt-1 text-sm text-gray-600">{{ total_agreements }} total agreements</p>
         </div>
         <a href="{% url 'rentals:rental_agreement_create' %}"
-           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
             </svg>
@@ -146,7 +146,7 @@
 
                 <div class="flex justify-between items-center">
                     <div class="flex space-x-3">
-                        <button type="submit" class="bg-accent text-white px-4 py-2 rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
                             Apply Filters
                         </button>
                         {% if request.GET %}
@@ -187,7 +187,7 @@
                             <div class="flex items-center">
                                 <div>
                                     <div class="text-sm font-medium text-gray-900">
-                                        <a href="{% url 'rentals:rental_agreement_detail' agreement.pk %}" class="text-accent-900 hover:text-accent-900">
+                                        <a href="{% url 'rentals:rental_agreement_detail' agreement.pk %}" class="text-blue-900 hover:text-blue-900">
                                             {{ agreement.agreement_number }}
                                         </a>
                                     </div>
@@ -199,7 +199,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">
-                                <a href="{% url 'tenants:tenant_detail' agreement.tenant.pk %}" class="text-accent-900 hover:text-accent-900">
+                                <a href="{% url 'tenants:tenant_detail' agreement.tenant.pk %}" class="text-blue-900 hover:text-blue-900">
                                     {{ agreement.tenant.name }}
                                 </a>
                             </div>
@@ -207,7 +207,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">
-                                <a href="{% url 'properties:room_detail' agreement.room.pk %}" class="text-accent-900 hover:text-accent-900">
+                                <a href="{% url 'properties:room_detail' agreement.room.pk %}" class="text-blue-900 hover:text-blue-900">
                                     {{ agreement.room.full_room_identifier }}
                                 </a>
                             </div>
@@ -244,7 +244,7 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="{% url 'rentals:rental_agreement_detail' agreement.pk %}" class="text-accent-900 hover:text-accent-900 mr-3">View</a>
+                            <a href="{% url 'rentals:rental_agreement_detail' agreement.pk %}" class="text-blue-900 hover:text-blue-900 mr-3">View</a>
                             <a href="{% url 'rentals:rental_agreement_update' agreement.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
                             {% if agreement.status == 'draft' %}
                             <a href="{% url 'rentals:rental_agreement_activate' agreement.pk %}" class="text-green-600 hover:text-green-900 mr-3">Activate</a>
@@ -265,12 +265,12 @@
             <div class="flex items-center justify-between">
                 <div class="flex-1 flex justify-between sm:hidden">
                     {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}{{ request.GET.urlencode|default_if_none:'' }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800">
+                    <a href="?page={{ page_obj.previous_page_number }}{{ request.GET.urlencode|default_if_none:'' }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-primary-500 hover:bg-primary-600 text-white">
                         Previous
                     </a>
                     {% endif %}
                     {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}{{ request.GET.urlencode|default_if_none:'' }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-accent hover:bg-accent-800">
+                    <a href="?page={{ page_obj.next_page_number }}{{ request.GET.urlencode|default_if_none:'' }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-white bg-primary-500 hover:bg-primary-600 text-white">
                         Next
                     </a>
                     {% endif %}
@@ -300,11 +300,11 @@
 
                             {% for num in page_obj.paginator.page_range %}
                             {% if page_obj.number == num %}
-                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-accent-50 text-sm font-medium text-accent-900">
+                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-accent-50 text-sm font-medium text-blue-900">
                                 {{ num }}
                             </span>
                             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <a href="?page={{ num }}{{ request.GET.urlencode|default_if_none:'' }}" class="relative inline-flex items-center px-4 py-2 border border-accent bg-accent text-sm font-medium text-white hover:bg-accent-800">
+                            <a href="?page={{ num }}{{ request.GET.urlencode|default_if_none:'' }}" class="relative inline-flex items-center px-4 py-2 border border-accent bg-primary-500 text-sm font-medium text-white hover:bg-primary-600">
                                 {{ num }}
                             </a>
                             {% endif %}
@@ -334,7 +334,7 @@
             <p class="mt-1 text-sm text-gray-500">Get started by creating a new rental agreement.</p>
             <div class="mt-6">
                 <a href="{% url 'rentals:rental_agreement_create' %}"
-                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
+                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                     </svg>

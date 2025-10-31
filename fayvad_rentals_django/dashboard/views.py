@@ -13,7 +13,10 @@ from decimal import Decimal
 
 @login_required
 def dashboard_overview(request):
-    """Main dashboard overview"""
+    """Main dashboard overview - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing staff dashboard
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     # Get key metrics
     metrics = {
         'total_tenants': get_tenant_metrics(),
@@ -42,12 +45,6 @@ def dashboard_overview(request):
     if request.user.is_staff or request.user.is_superuser:
         pending_tasks = get_pending_tasks_for_user(request.user)
 
-    # Check if user can view audit logs (managers only)
-    can_view_audit_logs = request.user.is_superuser or (
-        hasattr(request.user, 'staff_profile') and
-        request.user.staff_profile and
-        request.user.staff_profile.role == 'manager'
-    )
 
     context = {
         'page_title': 'Dashboard Overview',
@@ -55,7 +52,6 @@ def dashboard_overview(request):
         'recent_activity': recent_activity,
         'charts': charts,
         'pending_tasks': pending_tasks,
-        'can_view_audit_logs': can_view_audit_logs,
         'debug_user': {
             'username': request.user.username,
             'is_superuser': request.user.is_superuser,
@@ -67,7 +63,10 @@ def dashboard_overview(request):
 
 @login_required
 def dashboard_financial(request):
-    """Financial dashboard"""
+    """Financial dashboard - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing staff dashboard
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     financial_metrics = {
         'total_revenue': get_total_revenue(),
         'monthly_revenue': get_monthly_revenue(),
@@ -92,7 +91,10 @@ def dashboard_financial(request):
 
 @login_required
 def dashboard_occupancy(request):
-    """Occupancy dashboard"""
+    """Occupancy dashboard - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing staff dashboard
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     occupancy_metrics = {
         'total_rooms': get_room_metrics()['total'],
         'occupied_rooms': get_room_metrics()['occupied'],
@@ -111,7 +113,10 @@ def dashboard_occupancy(request):
 
 @login_required
 def dashboard_maintenance(request):
-    """Maintenance dashboard"""
+    """Maintenance dashboard - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing staff dashboard
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     maintenance_metrics = {
         'total_requests': get_maintenance_metrics()['total'],
         'pending_requests': get_maintenance_metrics()['pending'],
@@ -131,7 +136,10 @@ def dashboard_maintenance(request):
 
 @login_required
 def dashboard_tenant(request):
-    """Tenant dashboard"""
+    """Tenant dashboard - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing staff dashboard
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     tenant_metrics = {
         'total_tenants': get_tenant_metrics()['total'],
         'active_tenants': get_tenant_metrics()['active'],
@@ -150,7 +158,10 @@ def dashboard_tenant(request):
 
 @login_required
 def dashboard_property(request):
-    """Property dashboard"""
+    """Property dashboard - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing staff dashboard
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        return redirect('tenants:tenant_dashboard', tenant_id=request.user.tenant_profile.id)
     property_metrics = {
         'total_locations': get_location_metrics()['total'],
         'total_rooms': get_room_metrics()['total'],
@@ -261,9 +272,10 @@ def get_recent_activity():
         status='completed'
     ).order_by('-created_at')[:3]
     for payment in recent_payments:
+        tenant_name = payment.tenant.name if payment.tenant else "Unknown Tenant"
         activities.append({
             'type': 'payment',
-            'description': f"Payment of KSh {payment.amount} received from {payment.tenant.name}",
+            'description': f"Payment of KSh {payment.amount} received from {tenant_name}",
             'timestamp': payment.created_at,
             'icon': '💰'
         })
@@ -272,9 +284,10 @@ def get_recent_activity():
     from maintenance.models import MaintenanceRequest
     recent_maintenance = MaintenanceRequest.objects.select_related('tenant').order_by('-created_at')[:3]
     for maintenance in recent_maintenance:
+        tenant_name = maintenance.tenant.name if maintenance.tenant else "Unknown Tenant"
         activities.append({
             'type': 'maintenance',
-            'description': f"Maintenance request: {maintenance.title} for {maintenance.tenant.name}",
+            'description': f"Maintenance request: {maintenance.title} for {tenant_name}",
             'timestamp': maintenance.created_at,
             'icon': '🔧'
         })
@@ -478,7 +491,7 @@ def get_tenants_by_location():
     for agreement in RentalAgreement.objects.filter(status='active').select_related('room__location', 'tenant'):
         data.append({
             'location': agreement.room.location.name,
-            'tenant': agreement.tenant.name
+            'tenant': agreement.tenant.name if agreement.tenant else "Unknown Tenant"
         })
     location_counts = {}
     for item in data:
@@ -560,7 +573,6 @@ def get_pending_tasks_for_user(user):
     tasks = {
         'maintenance_requests': [],
         'payment_verifications': [],
-        'escalated_issues': [],
         'total_count': 0
     }
 
@@ -570,145 +582,50 @@ def get_pending_tasks_for_user(user):
         user_role = user.staff_profile.role
 
     # Maintenance tasks based on role
+    # Simplified: Just get basic pending tasks for all staff
     from maintenance.models import MaintenanceRequest
-
-    if user_role == 'manager':
-        # Managers see escalated and overdue maintenance
-        escalated = MaintenanceRequest.objects.filter(
-            Q(status='pending', priority='urgent') |
-            Q(status='in_progress', priority='urgent')
-        ).select_related('tenant', 'room__location').order_by('-requested_date')[:5]
-
-        overdue = MaintenanceRequest.objects.filter(
-            status__in=['pending', 'in_progress'],
-            requested_date__lt=timezone.now() - timedelta(days=7)
-        ).exclude(id__in=[m.id for m in escalated]).select_related(
-            'tenant', 'room__location'
-        ).order_by('-requested_date')[:5]
-
-        tasks['escalated_issues'].extend([
-            {
-                'id': req.id,
-                'type': 'escalated_maintenance',
-                'title': f"Urgent: {req.title}",
-                'description': f"{req.description[:50]}..." if len(req.description) > 50 else req.description,
-                'priority': req.priority,
-                'days_pending': req.days_pending,
-                'tenant': req.tenant.name,
-                'room': f"{req.room.room_number}",
-                'location': req.room.location.name,
-                'url': f"/maintenance/{req.id}/"
-            } for req in escalated
-        ])
-
-        tasks['escalated_issues'].extend([
-            {
-                'id': req.id,
-                'type': 'overdue_maintenance',
-                'title': f"Overdue: {req.title}",
-                'description': f"{req.description[:50]}..." if len(req.description) > 50 else req.description,
-                'priority': req.priority,
-                'days_pending': req.days_pending,
-                'tenant': req.tenant.name,
-                'room': f"{req.room.room_number}",
-                'location': req.room.location.name,
-                'url': f"/maintenance/{req.id}/"
-            } for req in overdue
-        ])
-
-    elif user_role == 'caretaker':
-        # Caretakers see pending assignments and completions
-        pending_assignment = MaintenanceRequest.objects.filter(
-            status='pending'
-        ).select_related('tenant', 'room__location').order_by('-requested_date')[:5]
-
-        needs_completion = MaintenanceRequest.objects.filter(
-            status='in_progress',
-            assigned_to__isnull=False
-        ).select_related('tenant', 'room__location').order_by('-assigned_date')[:5]
-
-        tasks['maintenance_requests'].extend([
-            {
-                'id': req.id,
-                'type': 'assign_maintenance',
-                'title': f"Assign: {req.title}",
-                'description': f"{req.description[:50]}..." if len(req.description) > 50 else req.description,
-                'priority': req.priority,
-                'days_pending': req.days_pending,
-                'tenant': req.tenant.name,
-                'room': f"{req.room.room_number}",
-                'location': req.room.location.name,
-                'url': f"/maintenance/{req.id}/"
-            } for req in pending_assignment
-        ])
-
-        tasks['maintenance_requests'].extend([
-            {
-                'id': req.id,
-                'type': 'complete_maintenance',
-                'title': f"Complete: {req.title}",
-                'description': f"Assigned to {req.assigned_to}",
-                'priority': req.priority,
-                'days_pending': req.days_pending,
-                'tenant': req.tenant.name,
-                'room': f"{req.room.room_number}",
-                'location': req.room.location.name,
-                'url': f"/maintenance/{req.id}/"
-            } for req in needs_completion
-        ])
-
-    elif user_role == 'cleaner':
-        # Cleaners see maintenance assigned to them
-        assigned_to_me = MaintenanceRequest.objects.filter(
-            status='in_progress',
-            assigned_to=user.get_full_name()
-        ).select_related('tenant', 'room__location').order_by('-assigned_date')[:10]
-
-        tasks['maintenance_requests'].extend([
-            {
-                'id': req.id,
-                'type': 'my_maintenance',
-                'title': f"My Task: {req.title}",
-                'description': req.description[:50] + "..." if len(req.description) > 50 else req.description,
-                'priority': req.priority,
-                'days_pending': req.days_pending,
-                'tenant': req.tenant.name,
-                'room': f"{req.room.room_number}",
-                'location': req.room.location.name,
-                'url': f"/maintenance/{req.id}/"
-            } for req in assigned_to_me
-        ])
-
-    # Payment verifications for caretakers and managers
-    if user_role in ['caretaker', 'manager']:
-        from payments.models import Payment
-
-        pending_payments = Payment.objects.filter(
-            status='pending'
-        ).select_related('tenant', 'room', 'rental_agreement').order_by('-created_at')[:5]
-
-        tasks['payment_verifications'].extend([
-            {
-                'id': payment.id,
-                'type': 'verify_payment',
-                'title': f"Verify Payment: KSh {payment.amount}",
-                'description': f"{payment.payment_method.upper()} - {payment.reference_number}",
-                'amount': payment.amount,
-                'method': payment.payment_method,
-                'tenant': payment.tenant.name if payment.tenant else 'Unknown',
-                'url': f"/payments/{payment.id}/"
-            } for payment in pending_payments
-        ])
-
-    # Calculate total count
-    tasks['total_count'] = (
-        len(tasks['maintenance_requests']) +
-        len(tasks['payment_verifications']) +
-        len(tasks['escalated_issues'])
-    )
-
+    from payments.models import Payment
+    
+    # Get pending maintenance requests
+    maintenance_tasks = MaintenanceRequest.objects.filter(
+        status__in=["pending", "in_progress"]
+    ).select_related("tenant", "room__location").order_by("-requested_date")[:10]
+    
+    tasks["maintenance_requests"] = [
+        {
+            "id": req.id,
+            "type": "maintenance",
+            "title": req.title,
+            "description": req.description[:50] + "..." if len(req.description) > 50 else req.description,
+            "priority": req.priority,
+            "status": req.status,
+            "days_pending": req.days_pending,
+            "tenant": req.tenant.name if req.tenant else "Unknown Tenant",
+            "room": f"{req.room.room_number}",
+            "location": req.room.location.name,
+            "url": f"/maintenance/{req.id}/"
+        } for req in maintenance_tasks
+    ]
+    
+    # Get pending payments
+    pending_payments = Payment.objects.filter(status="pending").select_related("tenant").order_by("-created_at")[:10]
+    
+    tasks["payment_verifications"] = [
+        {
+            "id": payment.id,
+            "type": "payment",
+            "title": f"Payment: KSh {payment.amount}",
+            "description": f"Payment reference: {payment.reference_number}",
+            "amount": payment.amount,
+            "tenant": payment.tenant.name if payment.tenant else "Unknown",
+            "created_at": payment.created_at,
+            "url": f"/payments/{payment.id}/"
+        } for payment in pending_payments
+    ]
+    
+    tasks["total_count"] = len(tasks["maintenance_requests"]) + len(tasks["payment_verifications"])
+    
     return tasks
-
 
 def manager_required(user):
     """Check if user is a manager or superuser"""
@@ -719,67 +636,14 @@ def manager_required(user):
     return False
 
 
-@login_required
-@user_passes_test(manager_required)
-def audit_log_view(request):
-    """Audit log viewer for managers - read-only"""
-    from workflows.services.audit import WorkflowAuditLog
-
-    # Get filter parameters
-    event_type = request.GET.get('event_type', '')
-    user_filter = request.GET.get('user', '')
-    instance_type = request.GET.get('instance_type', '')
-    days = int(request.GET.get('days', 30))
-
-    # Base queryset
-    since_date = timezone.now() - timedelta(days=days)
-    queryset = WorkflowAuditLog.objects.filter(timestamp__gte=since_date)
-
-    # Apply filters
-    if event_type:
-        queryset = queryset.filter(event_type=event_type)
-    if user_filter:
-        queryset = queryset.filter(user__username__icontains=user_filter)
-    if instance_type:
-        queryset = queryset.filter(instance_type=instance_type)
-
-    # Order by most recent first
-    queryset = queryset.select_related('user').order_by('-timestamp')
-
-    # Paginate results (50 per page)
-    paginator = Paginator(queryset, 50)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    # Get filter options for dropdowns
-    event_types = WorkflowAuditLog.objects.values_list('event_type', flat=True).distinct()
-    instance_types = WorkflowAuditLog.objects.values_list('instance_type', flat=True).distinct()
-    users = WorkflowAuditLog.objects.values_list('user__username', flat=True).distinct()
-
-    context = {
-        'page_title': 'Audit Log Review',
-        'page_obj': page_obj,
-        'event_types': sorted(event_types),
-        'instance_types': sorted(instance_types),
-        'users': sorted(users),
-        'current_filters': {
-            'event_type': event_type,
-            'user': user_filter,
-            'instance_type': instance_type,
-            'days': days
-        }
-    }
-
-    return render(request, 'dashboard/audit_log.html', context)
-
 
 @login_required
 def dashboard_metrics_api(request):
-    """
-    API endpoint for real-time dashboard metrics
-    Returns JSON data for dashboard updates
-    """
-    from django.http import JsonResponse
+    """Dashboard metrics API - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing staff APIs
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        from django.http import JsonResponse
+        return JsonResponse({'error': 'Access denied'}, status=403)
 
     try:
         # Get current metrics
@@ -805,6 +669,134 @@ def dashboard_metrics_api(request):
             'success': True,
             'data': metrics
         })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
+def dashboard_alerts_api(request):
+    """Dashboard alerts API - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing staff APIs
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        from django.http import JsonResponse
+        return JsonResponse({'error': 'Access denied'}, status=403)
+    from maintenance.models import MaintenanceRequest
+    from payments.models import Payment
+
+    try:
+        # Simple counts - no complex logic
+        overdue_maintenance = MaintenanceRequest.objects.filter(
+            status__in=['pending', 'in_progress']
+        ).count()
+
+        pending_payments = Payment.objects.filter(
+            status='pending'
+        ).count()
+
+        return JsonResponse({
+            'success': True,
+            'overdue_maintenance': overdue_maintenance,
+            'pending_payments': pending_payments
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
+def dashboard_reports_api(request):
+    """Dashboard reports API - Staff/Admin only"""
+    # Security check: Prevent tenant users from accessing staff APIs
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        from django.http import JsonResponse
+        return JsonResponse({'error': 'Access denied'}, status=403)
+    from django.db.models import Count, Sum
+    from maintenance.models import MaintenanceRequest
+    from payments.models import Payment
+    from rentals.models import RentalAgreement
+    from properties.models import Location, Room
+
+    try:
+        # Basic metrics - simple aggregations
+        report_type = request.GET.get('type', 'summary')
+
+        if report_type == 'maintenance':
+            # Maintenance status breakdown
+            maintenance_stats = dict(
+                MaintenanceRequest.objects.values('status')
+                .annotate(count=Count('status'))
+                .values_list('status', 'count')
+            )
+
+            return JsonResponse({
+                'success': True,
+                'data': maintenance_stats,
+                'total': sum(maintenance_stats.values())
+            })
+
+        elif report_type == 'payments':
+            # Payment status breakdown
+            payment_stats = dict(
+                Payment.objects.values('status')
+                .annotate(count=Count('status'))
+                .values_list('status', 'count')
+            )
+
+            # Monthly revenue
+            monthly_revenue = Payment.objects.filter(
+                status='completed',
+                created_at__month=timezone.now().month
+            ).aggregate(total=Sum('amount'))['total'] or 0
+
+            return JsonResponse({
+                'success': True,
+                'status_breakdown': payment_stats,
+                'monthly_revenue': float(monthly_revenue)
+            })
+
+        elif report_type == 'occupancy':
+            # Room occupancy
+            total_rooms = Room.objects.count()
+            occupied_rooms = Room.objects.filter(
+                rental_agreements__status='active'
+            ).distinct().count()
+
+            occupancy_rate = (occupied_rooms / total_rooms * 100) if total_rooms > 0 else 0
+
+            return JsonResponse({
+                'success': True,
+                'total_rooms': total_rooms,
+                'occupied_rooms': occupied_rooms,
+                'occupancy_rate': round(occupancy_rate, 1)
+            })
+
+        else:  # summary
+            # Overall summary
+            summary = {
+                'total_locations': Location.objects.count(),
+                'total_rooms': Room.objects.count(),
+                'active_agreements': RentalAgreement.objects.filter(status='active').count(),
+                'pending_maintenance': MaintenanceRequest.objects.filter(
+                    status__in=['pending', 'in_progress']
+                ).count(),
+                'pending_payments': Payment.objects.filter(status='pending').count(),
+                'monthly_revenue': float(Payment.objects.filter(
+                    status='completed',
+                    created_at__month=timezone.now().month
+                ).aggregate(total=Sum('amount'))['total'] or 0)
+            }
+
+            return JsonResponse({
+                'success': True,
+                'data': summary
+            })
 
     except Exception as e:
         return JsonResponse({

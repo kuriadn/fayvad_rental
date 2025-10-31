@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><a href="{% url 'tenants:complaint_list' %}" class="text-gray-700 hover:text-blue-900">Complaints</a></li>
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">{{ complaint.complaint_number }}</span></li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">{{ complaint.subject }}</h1>
+            <p class="mt-2 text-gray-600">Complaint #{{ complaint.complaint_number }}</p>
+        </div>
+        <div class="flex space-x-3">
+            {% if user.is_staff %}
+            <a href="{% url 'tenants:complaint_update' complaint.pk %}"
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Update Complaint
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Status Banner -->
+    <div class="mb-6 flex items-center space-x-4">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+            {% if complaint.status == 'open' %}bg-blue-100 text-blue-800
+            {% elif complaint.status == 'investigating' %}bg-yellow-100 text-yellow-800
+            {% elif complaint.status == 'resolved' %}bg-green-100 text-green-800
+            {% else %}bg-gray-100 text-gray-800{% endif %}">
+            {{ complaint.get_status_display }}
+        </span>
+
+        {% if workflow_data.metrics.is_overdue %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            Overdue
+        </span>
+        {% endif %}
+
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+            {% if complaint.priority == 'urgent' %}bg-red-100 text-red-800
+            {% elif complaint.priority == 'high' %}bg-orange-100 text-orange-800
+            {% elif complaint.priority == 'medium' %}bg-yellow-100 text-yellow-800
+            {% else %}bg-green-100 text-green-800{% endif %}">
+            {{ complaint.get_priority_display }} Priority
+        </span>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Complaint Details -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Complaint Information -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Complaint Details</h2>
+                </div>
+                <div class="px-6 py-4">
+                    <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Category</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ complaint.get_category_display }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Priority</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ complaint.get_priority_display }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Tenant</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                <a href="{% url 'tenants:tenant_detail' complaint.tenant.id %}" class="text-blue-600 hover:text-blue-900">
+                                    {{ complaint.tenant.name }}
+                                </a>
+                            </dd>
+                        </div>
+                        {% if complaint.room %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Room</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                <a href="#" class="text-blue-600 hover:text-blue-900">
+                                    {{ complaint.room.room_number }} - {{ complaint.room.location.name }}
+                                </a>
+                            </dd>
+                        </div>
+                        {% endif %}
+                        {% if complaint.assigned_to %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Assigned To</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ complaint.assigned_to.user.get_full_name }}</dd>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Created</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ complaint.created_at|date:"M j, Y \a\t g:i A" }}</dd>
+                        </div>
+                    </dl>
+
+                    <div class="mt-6">
+                        <dt class="text-sm font-medium text-gray-500 mb-2">Description</dt>
+                        <dd class="text-sm text-gray-900 bg-gray-50 rounded-md p-4">{{ complaint.description }}</dd>
+                    </div>
+
+                    {% if complaint.resolution %}
+                    <div class="mt-6">
+                        <dt class="text-sm font-medium text-gray-500 mb-2">Resolution</dt>
+                        <dd class="text-sm text-gray-900 bg-green-50 rounded-md p-4">{{ complaint.resolution }}</dd>
+                        {% if complaint.resolution_date %}
+                        <p class="text-xs text-gray-500 mt-2">Resolved on {{ complaint.resolution_date|date:"M j, Y \a\t g:i A" }}</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Workflow History -->
+            {% if workflow_data.history %}
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Status History</h2>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        {% for entry in workflow_data.history %}
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="text-sm text-gray-900">
+                                    {% if entry.from_status %}
+                                        Status changed from <span class="font-medium">{{ entry.from_status|title }}</span> to <span class="font-medium">{{ entry.to_status|title }}</span>
+                                    {% else %}
+                                        <span class="font-medium">{{ entry.to_status|title }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-sm text-gray-500">{{ entry.notes }}</div>
+                                <div class="text-xs text-gray-400 mt-1">{{ entry.timestamp|date:"M j, Y \a\t g:i A" }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column - Metrics & Actions -->
+        <div class="space-y-6">
+            <!-- Workflow Metrics -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Metrics</h2>
+                </div>
+                <div class="px-6 py-4 space-y-4">
+                    {% if workflow_data.metrics.days_open %}
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-500">Days Open</span>
+                        <span class="text-sm font-medium text-gray-900">{{ workflow_data.metrics.days_open }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-500">Has Assignment</span>
+                        <span class="text-sm font-medium text-gray-900">
+                            {% if workflow_data.metrics.has_assignment %}Yes{% else %}No{% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-500">Current State</span>
+                        <span class="text-sm font-medium text-gray-900">{{ workflow_data.current_state|title }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Actions -->
+            {% if workflow_data.available_events %}
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Available Actions</h2>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-2">
+                        {% for event in workflow_data.available_events %}
+                        <button class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            {{ event|title }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Complaint Summary -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Summary</h2>
+                </div>
+                <div class="px-6 py-4 space-y-3">
+                    <div>
+                        <span class="text-sm text-gray-500">Status:</span>
+                        <span class="text-sm text-gray-900 ml-2">{{ complaint.get_status_display }}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-500">Priority:</span>
+                        <span class="text-sm text-gray-900 ml-2">{{ complaint.get_priority_display }}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-500">Category:</span>
+                        <span class="text-sm text-gray-900 ml-2">{{ complaint.get_category_display }}</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-500">Created:</span>
+                        <span class="text-sm text-gray-900 ml-2">{{ complaint.created_at|date:"M j, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

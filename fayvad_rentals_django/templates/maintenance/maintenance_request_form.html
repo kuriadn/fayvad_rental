@@ -4,9 +4,9 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
-        <li><a href="{% url 'maintenance:maintenance_request_list' %}" class="text-gray-700 hover:text-accent-900">Maintenance</a></li>
+        <li><a href="{% url 'maintenance:maintenance_request_list' %}" class="text-gray-700 hover:text-blue-900">Maintenance</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">{% if maintenance_request %}Edit Request{% else %}Create Request{% endif %}</span></li>
     </ol>
@@ -63,7 +63,7 @@
             </div>
             <div class="flex justify-end space-x-3 mt-6">
                 <a href="{% url 'maintenance:maintenance_request_list' %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md">Cancel</a>
-                <button type="submit" class="bg-accent text-white px-4 py-2 rounded-md">Create Request</button>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md">Create Request</button>
             </div>
         </form>
     </div>

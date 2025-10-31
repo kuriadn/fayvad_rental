@@ -6,7 +6,7 @@
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-accent-900">Dashboard</a></li>
+        <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><span class="text-gray-900">Occupancy</span></li>
     </ol>
@@ -22,7 +22,7 @@
             <p class="text-gray-600">Room occupancy rates and availability overview</p>
         </div>
         <div class="flex space-x-3">
-            <a href="{% url 'reports:report_generate' 'occupancy' %}" class="bg-accent text-white px-4 py-2 rounded-md hover:bg-accent">
+            <a href="{% url 'reports:report_generate' 'occupancy' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
                 Generate Report
             </a>
         </div>
