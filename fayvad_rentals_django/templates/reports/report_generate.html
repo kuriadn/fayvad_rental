@@ -169,6 +169,28 @@
                     </select>
                 </div>
                 {% endif %}
+
+                {% if report_type == 'property' %}
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Location (Optional)</label>
+                        <select name="location" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-accent focus:border-accent sm:text-sm">
+                            <option value="">All Locations</option>
+                            <!-- Add location options here if needed -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Room Type (Optional)</label>
+                        <select name="room_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-accent focus:border-accent sm:text-sm">
+                            <option value="">All Types</option>
+                            <option value="single">Single</option>
+                            <option value="double">Double</option>
+                            <option value="suite">Suite</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <div class="flex justify-end space-x-3 mt-6">

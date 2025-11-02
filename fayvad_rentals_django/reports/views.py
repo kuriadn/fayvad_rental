@@ -15,7 +15,7 @@ import csv
 from .models import ReportType, ExportFormat, GeneratedReport
 from .utils import (
     generate_occupancy_report, generate_revenue_report, generate_maintenance_report,
-    generate_collection_report, generate_tenant_report, generate_financial_report,
+    generate_collection_report, generate_tenant_report, generate_financial_report, generate_property_report,
     export_report_json, export_report_csv, export_report_pdf, export_report_excel
 )
 
@@ -71,6 +71,14 @@ def report_list(request):
             "category": "Finance",
             "formats": ["json", "csv", "pdf", "excel"],
             "filters": ["date_range", "status", "location"]
+        },
+        {
+            "id": "property",
+            "name": "Property Report",
+            "description": "Property and location information, room details, and occupancy statistics",
+            "category": "Operations",
+            "formats": ["json", "csv", "pdf", "excel"],
+            "filters": ["location", "room_type"]
         }
     ]
 
@@ -102,6 +110,8 @@ def report_generate(request, report_type):
             filters = extract_revenue_filters(request.POST)
         elif report_type == 'collection':
             filters = extract_collection_filters(request.POST)
+        elif report_type == 'property':
+            filters = extract_property_filters(request.POST)
         else:
             messages.error(request, f'Unknown report type: {report_type}')
             return redirect('reports:report_list')
@@ -113,12 +123,18 @@ def report_generate(request, report_type):
             # Export in requested format
             if format_type == 'json':
                 response_data = export_report_json(report_data, report_type)
-                return JsonResponse(response_data)
+                response = HttpResponse(
+                    json.dumps(response_data, indent=2),
+                    content_type='application/json'
+                )
+                response['Content-Disposition'] = f'attachment; filename="{report_type}_report.json"'
+                return response
             elif format_type == 'csv':
                 response = export_report_csv(report_data, report_type)
                 return response
             elif format_type == 'pdf':
                 response = export_report_pdf(report_data, report_type)
+                print(f"DEBUG: PDF response content_type = {response.get('Content-Type')}")
                 return response
             elif format_type == 'excel':
                 response = export_report_excel(report_data, report_type)
@@ -168,6 +184,61 @@ def report_download(request, report_id):
             raise Http404("File not found")
     else:
         raise Http404("Report file not available")
+
+
+@login_required
+def api_generate_report(request):
+    """API endpoint for report generation - returns JSON"""
+    from django.http import JsonResponse
+
+    # Security check: Prevent tenant users from accessing staff reports
+    if hasattr(request.user, 'tenant_profile') and request.user.tenant_profile:
+        return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+
+    # Get parameters
+    report_type = request.POST.get('report_type')
+    date_from = request.POST.get('date_from')
+    date_to = request.POST.get('date_to')
+
+    if not report_type:
+        return JsonResponse({'success': False, 'error': 'report_type is required'})
+
+    # Validate report type
+    valid_types = ['financial', 'tenant', 'property', 'occupancy', 'maintenance', 'revenue', 'collection']
+    if report_type not in valid_types:
+        return JsonResponse({'success': False, 'error': f'Invalid report type: {report_type}'})
+
+    try:
+        # Prepare filters
+        filters = {}
+        if date_from:
+            filters['start_date'] = date_from
+        if date_to:
+            filters['end_date'] = date_to
+
+        # Generate report
+        report_data = generate_report_data(report_type, filters)
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{report_type.title()} report generated successfully',
+            'data': {
+                'report_type': report_type,
+                'date_range': {'from': date_from, 'to': date_to} if date_from or date_to else None,
+                'generated_at': timezone.now().isoformat(),
+                'results': report_data
+            }
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error generating report: {str(e)}'
+        }, status=500)
+
 
 # Helper functions for filter extraction
 
@@ -253,6 +324,16 @@ def extract_collection_filters(post_data):
         filters['location'] = post_data['location']
     return filters
 
+def extract_property_filters(post_data):
+    """Extract property report filters"""
+    filters = {}
+    if post_data.get('location'):
+        filters['location'] = post_data['location']
+    if post_data.get('room_type'):
+        filters['room_type'] = post_data['room_type']
+    return filters
+
+
 # Main report generation function
 
 def generate_report_data(report_type, filters=None):
@@ -272,5 +353,7 @@ def generate_report_data(report_type, filters=None):
         return generate_tenant_report(filters)
     elif report_type == 'financial':
         return generate_financial_report(filters)
+    elif report_type == 'property':
+        return generate_property_report(filters)
     else:
         raise ValueError(f"Unknown report type: {report_type}")
