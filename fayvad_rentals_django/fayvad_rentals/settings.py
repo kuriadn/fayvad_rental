@@ -11,7 +11,7 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Environment-based settings
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-production-123456789')
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,172.28.115.234,testserver').split(',')
@@ -66,7 +66,6 @@ TEMPLATES = [
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
-                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
@@ -86,7 +85,7 @@ DATABASES = {
         "NAME": config('DB_NAME', default='fayvad_rental_db'),
         "USER": config('DB_USER', default='fayvad'),
         "PASSWORD": config('DB_PASSWORD', default='MeMiMo@0207'),
-        "HOST": config('DB_HOST', default='172.28.115.234'),
+        "HOST": config('DB_HOST', default='postgres'),
         "PORT": config('DB_PORT', default='5432'),
         "OPTIONS": {
             "connect_timeout": 10,
@@ -162,6 +161,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
 ]
 
+# CSRF Trusted Origins
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000,http://127.0.0.1:8000').split(',')
+
 # REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -208,7 +210,7 @@ LOGGING = {
         },
         'core_services': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False,
         },
     },

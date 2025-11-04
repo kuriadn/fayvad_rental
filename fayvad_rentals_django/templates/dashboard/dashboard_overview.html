@@ -566,7 +566,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadWorkflowAlerts() {
-    console.log("Loading dashboard alerts");
 
     // Simple direct API call for dashboard metrics
     fetch('/api/dashboard/alerts/')
@@ -768,7 +767,6 @@ function showRefreshIndicator() {
 
 // Dashboard interactivity
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Dashboard loaded with auto-refresh enabled');
 
     // Start auto-refresh by default
     startAutoRefresh();

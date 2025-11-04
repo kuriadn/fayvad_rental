@@ -7,6 +7,12 @@ services:
     volumes:
       - redis_data:/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     networks:
       - fayvad-network
 
@@ -14,29 +20,34 @@ services:
     build: ./fayvad_rentals_django
     container_name: fayvad-rental-web
     ports:
-      - "8000:8000"
+      - "8004:8000"
     environment:
-      - DEBUG=${DEBUG:-true}
+      - DEBUG=${DEBUG:-false}
       - SECRET_KEY=${SECRET_KEY:-django-insecure-change-this}
       - DB_NAME=${DB_NAME:-fayvad_rental_db}
       - DB_USER=${DB_USER:-fayvad}
       - DB_PASSWORD=${DB_PASSWORD:-MeMiMo@0207}
-      - DB_HOST=${DB_HOST:-172.28.115.234}
+      - DB_HOST=${DB_HOST:-167.86.95.242}
       - DB_PORT=${DB_PORT:-5432}
       - REDIS_URL=redis://redis:6379/0
-      - ALLOWED_HOSTS=localhost,127.0.0.1,172.28.115.234
+      - ALLOWED_HOSTS=localhost,127.0.0.1,172.28.115.234,rental.fayvad.com
+      - CSRF_TRUSTED_ORIGINS=https://rental.fayvad.com,http://rental.fayvad.com,https://localhost:8004,http://localhost:8004
     volumes:
       - ./fayvad_rentals_django:/app
       - ./media:/app/media
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - fayvad-network
     command: gunicorn fayvad_rentals.wsgi:application --bind 0.0.0.0:8000 --workers 3
 
 volumes:
   redis_data:
+    driver: local
 
 networks:
   fayvad-network:

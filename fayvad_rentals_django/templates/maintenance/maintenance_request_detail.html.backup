@@ -362,7 +362,6 @@
 
                 function loadWorkflowStatus() {
                     const instanceId = '{{ maintenance_request.id }}';
-                    console.log('Loading workflow status for maintenance request:', instanceId);
 
                     // Load workflow status
                     fetch(`/api/workflows/maintenance/${instanceId}/status/`, {
@@ -372,14 +371,12 @@
                         }
                     })
                     .then(response => {
-                        console.log('Workflow API response status:', response.status);
                         if (!response.ok) {
                             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                         }
                         return response.json();
                     })
                     .then(data => {
-                        console.log('Workflow API response data:', data);
                         if (data.success) {
                             updateWorkflowUI(data.data);
                         } else {
@@ -519,7 +516,6 @@
                     // Update available actions
                     const actionsElement = document.getElementById('workflow-actions');
                     const availableEvents = workflowData.available_events || [];
-                    console.log('Available workflow events:', availableEvents);
 
                     if (availableEvents.length > 0) {
                         let actionsHtml = '';
