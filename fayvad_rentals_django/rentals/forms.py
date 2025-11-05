@@ -3,6 +3,7 @@ Rental agreement management forms
 """
 
 from django import forms
+from django.db.models import Q
 from .models import RentalAgreement
 
 class RentalAgreementForm(forms.ModelForm):
@@ -39,27 +40,32 @@ class RentalAgreementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Only show tenants without active rental agreements
-        from tenants.models import Tenant
-        active_agreements = RentalAgreement.objects.filter(
-            status__in=['draft', 'active']
-        ).values_list('tenant_id', flat=True)
-        self.fields['tenant'].queryset = Tenant.objects.exclude(
-            id__in=active_agreements
-        ).filter(
-            tenant_status__in=['prospective', 'active']
-        ).order_by('name')
+        # For editing existing agreements, make tenant and room read-only
+        if self.instance.pk:
+            self.fields['tenant'].disabled = True
+            self.fields['room'].disabled = True
+        else:
+            # For new agreements, exclude tenants/rooms with active agreements
+            from tenants.models import Tenant
+            from properties.models import Room
 
-        # Only show rooms without active rental agreements
-        from properties.models import Room
-        active_room_agreements = RentalAgreement.objects.filter(
-            status__in=['draft', 'active']
-        ).values_list('room_id', flat=True)
-        self.fields['room'].queryset = Room.objects.exclude(
-            id__in=active_room_agreements
-        ).filter(
-            status__in=['available', 'occupied']
-        ).order_by('location__name', 'room_number')
+            active_agreements = RentalAgreement.objects.filter(
+                status__in=['draft', 'active']
+            ).values_list('tenant_id', flat=True)
+            self.fields['tenant'].queryset = Tenant.objects.exclude(
+                id__in=active_agreements
+            ).filter(
+                tenant_status__in=['prospective', 'active']
+            ).order_by('name')
+
+            active_room_agreements = RentalAgreement.objects.filter(
+                status__in=['draft', 'active']
+            ).values_list('room_id', flat=True)
+            self.fields['room'].queryset = Room.objects.exclude(
+                id__in=active_room_agreements
+            ).filter(
+                status__in=['available', 'occupied']
+            ).order_by('location__name', 'room_number')
 
         # Set default dates for new agreements
         if not self.instance.pk:

@@ -25,16 +25,43 @@ def profile(request):
 @login_required
 def profile_edit(request):
     """Edit user profile"""
+    is_tenant = hasattr(request.user, 'tenant_profile') and request.user.tenant_profile
+
     if request.method == 'POST':
         form = ProfileForm(request.POST, instance=request.user)
-        password_form = PasswordChangeForm(request.user, request.POST)
 
-        if form.is_valid():
+        # Only process password form for non-tenant users
+        if not is_tenant:
+            password_form = PasswordChangeForm(request.user, request.POST)
+
+            # Check if password fields were filled
+            password_fields_filled = any([
+                request.POST.get('old_password'),
+                request.POST.get('new_password1'),
+                request.POST.get('new_password2')
+            ])
+
+            # Validate password form only if password fields were filled
+            password_valid = False
+            if password_fields_filled:
+                password_valid = password_form.is_valid()
+        else:
+            password_form = None
+            password_fields_filled = False
+            password_valid = True  # Skip password validation for tenants
+
+        # Validate profile form
+        profile_valid = form.is_valid()
+
+        # Save profile if valid and no password validation errors
+        if profile_valid and (not password_fields_filled or password_valid):
             form.save()
-            messages.success(request, 'Profile updated successfully.')
-            return redirect('accounts:profile')
+            if not password_fields_filled:
+                messages.success(request, 'Profile updated successfully.')
+                return redirect('accounts:profile')
 
-        if password_form.is_valid():
+        # Save password if valid (only for non-tenants)
+        if password_valid and password_fields_filled and not is_tenant:
             user = password_form.save()
             update_session_auth_hash(request, user)  # Keep user logged in
             messages.success(request, 'Password changed successfully.')
@@ -42,12 +69,13 @@ def profile_edit(request):
 
     else:
         form = ProfileForm(instance=request.user)
-        password_form = PasswordChangeForm(request.user)
+        password_form = PasswordChangeForm(request.user) if not is_tenant else None
 
     return render(request, 'accounts/profile_edit.html', {
         'form': form,
         'password_form': password_form,
         'page_title': 'Edit Profile',
+        'is_tenant': is_tenant,
     })
 
 def tenant_login(request):
@@ -77,8 +105,41 @@ def tenant_login(request):
                     tenant_status__in=['active', 'prospective']
                 )
 
-                if tenant.user and tenant.user.is_active:
-                    # Log in the associated user
+                # Create user account if tenant doesn't have one
+                if not tenant.user:
+                    from accounts.models import User
+                    import secrets
+                    import string
+
+                    # Generate a unique username from tenant name
+                    base_username = f"tenant_{tenant.id_number}"
+                    username = base_username
+                    counter = 1
+                    while User.objects.filter(username=username).exists():
+                        username = f"{base_username}_{counter}"
+                        counter += 1
+
+                    # Generate a random password (tenant won't use it)
+                    password_chars = string.ascii_letters + string.digits
+                    password = ''.join(secrets.choice(password_chars) for i in range(12))
+
+                    # Create the user account
+                    user = User.objects.create_user(
+                        username=username,
+                        email=tenant.email,
+                        password=password,
+                        first_name=tenant.name.split()[0] if tenant.name else '',
+                        last_name=' '.join(tenant.name.split()[1:]) if len(tenant.name.split()) > 1 else '',
+                        phone=tenant.phone,
+                        is_active=True
+                    )
+
+                    # Link the user to the tenant
+                    tenant.user = user
+                    tenant.save()
+
+                # Log in the user
+                if tenant.user.is_active:
                     login(request, tenant.user)
                     messages.success(request, f'Welcome back, {tenant.name}!')
                     return redirect('tenants:tenant_dashboard', tenant_id=tenant.id)
@@ -213,15 +274,44 @@ def staff_edit(request, pk):
 
     if request.method == 'POST':
         form = StaffForm(request.POST, instance=staff)
-        if form.is_valid():
+        password_form = PasswordChangeForm(staff.user, request.POST)
+
+        # Check if password fields were filled
+        password_fields_filled = any([
+            request.POST.get('old_password'),
+            request.POST.get('new_password1'),
+            request.POST.get('new_password2')
+        ])
+
+        # Validate staff form
+        staff_valid = form.is_valid()
+
+        # Validate password form only if password fields were filled
+        password_valid = False
+        if password_fields_filled:
+            password_valid = password_form.is_valid()
+
+        # Save staff form if valid and no password validation errors
+        if staff_valid and (not password_fields_filled or password_valid):
             form.save()
-            messages.success(request, f'Staff member {staff.full_name} updated successfully.')
+            if not password_fields_filled:
+                messages.success(request, f'Staff member {staff.full_name} updated successfully.')
+                return redirect('accounts:staff_list')
+
+        # Save password if valid
+        if password_valid:
+            user = password_form.save()
+            update_session_auth_hash(request, user)  # Keep user logged in
+            messages.success(request, f'Password for {staff.full_name} changed successfully.')
             return redirect('accounts:staff_list')
+
     else:
         form = StaffForm(instance=staff)
+        password_form = PasswordChangeForm(staff.user)
 
     return render(request, 'accounts/staff_form.html', {
         'form': form,
+        'password_form': password_form,
         'staff': staff,
         'page_title': f'Edit {staff.full_name}',
         'is_create': False,

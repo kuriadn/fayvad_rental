@@ -52,12 +52,6 @@ def dashboard_overview(request):
         'recent_activity': recent_activity,
         'charts': charts,
         'pending_tasks': pending_tasks,
-        'debug_user': {
-            'username': request.user.username,
-            'is_superuser': request.user.is_superuser,
-            'is_staff': request.user.is_staff,
-            'is_authenticated': request.user.is_authenticated,
-        }
     }
     return render(request, 'dashboard/dashboard_overview.html', context)
 

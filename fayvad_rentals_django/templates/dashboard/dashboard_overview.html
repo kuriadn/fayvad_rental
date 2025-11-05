@@ -19,18 +19,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- DEBUG: User Info -->
-{% if debug_user %}
-<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-    <h4 class="text-sm font-medium text-yellow-800">DEBUG: Current User</h4>
-    <p class="text-sm text-yellow-700">
-        Username: {{ debug_user.username }} |
-        Is Superuser: {{ debug_user.is_superuser }} |
-        Is Staff: {{ debug_user.is_staff }} |
-        Is Authenticated: {{ debug_user.is_authenticated }}
-    </p>
-</div>
-{% endif %}
 
 <!-- Key Metrics Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -527,48 +515,19 @@
             </div>
         </div>
 
-        <!-- Workflow Metrics -->
-        <div class="bg-white shadow rounded-lg">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h3 class="text-lg font-medium text-gray-900">Workflow Metrics</h3>
-            </div>
-            <div class="p-6">
-                <div id="workflow-metrics" class="space-y-4">
-                    <div class="text-sm text-gray-500">Loading metrics...</div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
-
-{% if user.is_staff %}
-<div class="mt-8 bg-white shadow rounded-lg">
-    <div class="px-6 py-4 border-b border-gray-200">
-    </div>
-    <div class="p-6">
-        </div>
-        <div class="mt-4">
-            <button id="mark-all-read" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                Mark all as read
-            </button>
-        </div>
-    </div>
-</div>
-{% endif %}
 
 <script>
 // Load workflow data when page loads
 document.addEventListener('DOMContentLoaded', function() {
     loadWorkflowAlerts();
-    loadWorkflowMetrics();
-    {% if user.is_staff %}
-    {% endif %}
 });
 
 function loadWorkflowAlerts() {
 
-    // Simple direct API call for dashboard metrics
-    fetch('/api/dashboard/alerts/')
+    // Simple direct API call for dashboard alerts
+    fetch('/dashboard/api/alerts/')
         .then(response => response.json())
         .then(data => {
             const alertsElement = document.getElementById('workflow-alerts');

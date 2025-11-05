@@ -185,8 +185,16 @@ class TenantOnboardingForm(forms.ModelForm):
             self.instance.compliance_status = ComplianceStatus.COMPLIANT
 
 
-class ComplaintForm(forms.ModelForm):
-    """Form for tenant complaint submission"""
+class TenantComplaintForm(forms.ModelForm):
+    """Form for tenant complaint submission - only shows rooms they occupy"""
+
+    # Explicitly define room field with proper queryset
+    room = forms.ModelChoiceField(
+        queryset=None,  # Will be set in __init__
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text='Select the room where you are experiencing the issue'
+    )
 
     class Meta:
         model = Complaint
@@ -207,7 +215,6 @@ class ComplaintForm(forms.ModelForm):
             }),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'priority': forms.Select(attrs={'class': 'form-select'}),
-            'room': forms.Select(attrs={'class': 'form-select'}),
             'contact_preference': forms.Select(attrs={'class': 'form-select'}),
         }
 
@@ -215,27 +222,80 @@ class ComplaintForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        # Filter rooms based on tenant's current location/agreements
+        # Set up room queryset based on tenant's agreements
+        from properties.models import Room
+        base_queryset = Room.objects.select_related('location').order_by('location__name', 'room_number')
+
         if self.user:
             try:
                 tenant_profile = self.user.tenant_profile
-                # Get rooms from tenant's active agreements
+                # Get rooms from tenant's active or draft agreements
                 from rentals.models import RentalAgreement
                 active_rooms = RentalAgreement.objects.filter(
                     tenant=tenant_profile,
-                    status='active'
+                    status__in=['active', 'draft']
                 ).values_list('room', flat=True)
 
                 if active_rooms:
-                    self.fields['room'].queryset = self.fields['room'].queryset.filter(
-                        id__in=active_rooms
-                    )
+                    self.fields['room'].queryset = base_queryset.filter(id__in=active_rooms)
                 else:
-                    # If no active agreements, show all rooms (for former tenants)
-                    pass
-            except AttributeError:
-                # User doesn't have tenant profile
-                self.fields['room'].queryset = self.fields['room'].queryset.none()
+                    # No active agreements, no rooms
+                    self.fields['room'].queryset = base_queryset.none()
+            except:
+                # No tenant profile, no rooms
+                self.fields['room'].queryset = base_queryset.none()
+        else:
+            # No user, no rooms
+            self.fields['room'].queryset = base_queryset.none()
+
+        # Make contact_preference not required since it has a default
+        self.fields['contact_preference'].required = False
+
+        # Make room optional
+        self.fields['room'].required = False
+        self.fields['priority'].initial = 'medium'
+
+
+class ComplaintForm(forms.ModelForm):
+    """Form for staff complaint submission - shows all rooms"""
+
+    # Explicitly define room field for staff
+    room = forms.ModelChoiceField(
+        queryset=None,  # Will be set in __init__
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text='Select the room related to this complaint'
+    )
+
+    class Meta:
+        model = Complaint
+        fields = [
+            'tenant', 'category', 'priority', 'subject', 'description',
+            'room', 'is_anonymous', 'contact_preference'
+        ]
+        widgets = {
+            'subject': forms.TextInput(attrs={
+                'class': 'form-input',
+                'placeholder': 'Brief summary of your complaint',
+                'maxlength': 200
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-textarea',
+                'placeholder': 'Please provide detailed information about your complaint...',
+                'rows': 6
+            }),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'priority': forms.Select(attrs={'class': 'form-select'}),
+            'tenant': forms.Select(attrs={'class': 'form-select'}),
+            'contact_preference': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Staff form shows all rooms and tenants
+        from properties.models import Room
+        self.fields['room'].queryset = Room.objects.select_related('location').order_by('location__name', 'room_number')
 
         # Make contact_preference not required since it has a default
         self.fields['contact_preference'].required = False

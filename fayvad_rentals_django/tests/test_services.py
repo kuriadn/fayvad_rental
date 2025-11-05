@@ -170,14 +170,18 @@ class RentalServiceTest(TestCase):
         """Test activate_agreement service method"""
         result = RentalService.activate_agreement(str(self.agreement.id))
         self.assertTrue(result['success'])
-        
+
         # Verify activation
         self.agreement.refresh_from_db()
         self.assertEqual(self.agreement.status, "active")
-        
+
         # Verify room status changed
         self.room.refresh_from_db()
         self.assertEqual(self.room.status, "occupied")
+
+        # Verify tenant status changed
+        self.tenant.refresh_from_db()
+        self.assertEqual(self.tenant.tenant_status, "active")
     
     def test_terminate_agreement(self):
         """Test terminate_agreement service method"""

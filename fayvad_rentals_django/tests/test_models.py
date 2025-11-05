@@ -147,6 +147,9 @@ class RentalAgreementModelTest(TestCase):
         """Test agreement activation"""
         self.agreement.activate_agreement()
         self.assertEqual(self.agreement.status, "active")
+        # Room should be marked as occupied
+        self.room.refresh_from_db()
+        self.assertEqual(self.room.status, "occupied")
     
     def test_total_contract_value(self):
         """Test total contract value calculation"""

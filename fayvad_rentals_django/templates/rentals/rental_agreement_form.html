@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Create Rental Agreement - {{ block.super }}{% endblock %}
+{% block title %}{{ page_title }} - {{ block.super }}{% endblock %}
 
 {% block breadcrumbs %}
 <nav class="flex mb-4" aria-label="Breadcrumb">
@@ -8,8 +8,12 @@
         <li><a href="{% url 'dashboard:dashboard_overview' %}" class="text-gray-700 hover:text-blue-900">Dashboard</a></li>
         <li><span class="text-gray-500">/</span></li>
         <li><a href="{% url 'rentals:rental_agreement_list' %}" class="text-gray-700 hover:text-blue-900">Rental Agreements</a></li>
+        {% if agreement %}
         <li><span class="text-gray-500">/</span></li>
-        <li><span class="text-gray-900">Create Agreement</span></li>
+        <li><a href="{% url 'rentals:rental_agreement_detail' agreement.pk %}" class="text-gray-700 hover:text-blue-900">{{ agreement.agreement_number }}</a></li>
+        {% endif %}
+        <li><span class="text-gray-500">/</span></li>
+        <li><span class="text-gray-900">{{ page_title }}</span></li>
     </ol>
 </nav>
 {% endblock %}
@@ -18,8 +22,14 @@
 <div class="max-w-4xl">
     <div class="bg-white shadow rounded-lg">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h1 class="text-xl font-semibold text-gray-900">Create New Rental Agreement</h1>
-            <p class="mt-1 text-sm text-gray-600">Fill in the details to create a new rental agreement.</p>
+            <h1 class="text-xl font-semibold text-gray-900">{{ page_title }}</h1>
+            <p class="mt-1 text-sm text-gray-600">
+                {% if agreement %}
+                    Edit the rental agreement details below.
+                {% else %}
+                    Fill in the details to create a new rental agreement.
+                {% endif %}
+            </p>
         </div>
 
         <form method="post" class="p-6">
@@ -37,6 +47,9 @@
                     {% if form.tenant.help_text %}
                         <p class="mt-1 text-xs text-gray-500">{{ form.tenant.help_text }}</p>
                     {% endif %}
+                    {% if agreement %}
+                        <p class="mt-1 text-xs text-blue-600">Tenant cannot be changed after agreement creation</p>
+                    {% endif %}
                 </div>
 
                 <!-- Room Selection -->
@@ -48,6 +61,9 @@
                     {% endif %}
                     {% if form.room.help_text %}
                         <p class="mt-1 text-xs text-gray-500">{{ form.room.help_text }}</p>
+                    {% endif %}
+                    {% if agreement %}
+                        <p class="mt-1 text-xs text-blue-600">Room cannot be changed after agreement creation</p>
                     {% endif %}
                 </div>
 
@@ -137,11 +153,11 @@
             </div>
 
             <div class="flex justify-end space-x-3 mt-6">
-                <a href="{% url 'rentals:rental_agreement_list' %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
+                <a href="{% if agreement %}{% url 'rentals:rental_agreement_detail' agreement.pk %}{% else %}{% url 'rentals:rental_agreement_list' %}{% endif %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
                     Cancel
                 </a>
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                    Create Agreement
+                    {% if agreement %}Save Changes{% else %}Create Agreement{% endif %}
                 </button>
             </div>
         </form>

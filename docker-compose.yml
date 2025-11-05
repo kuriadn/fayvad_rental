@@ -22,7 +22,7 @@ services:
     ports:
       - "8004:8000"
     environment:
-      - DEBUG=${DEBUG:-false}
+      - DEBUG=${DEBUG:-true}
       - SECRET_KEY=${SECRET_KEY:-django-insecure-change-this}
       - DB_NAME=${DB_NAME:-fayvad_rental_db}
       - DB_USER=${DB_USER:-fayvad}

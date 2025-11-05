@@ -177,14 +177,10 @@ class RentalService:
                     'error': f'Can only activate draft agreements (current status: {agreement.status})'
                 }
 
-            # Activate agreement
+            # Activate agreement (this also updates room status)
             agreement.activate_agreement()
 
-            # Update room status
-            agreement.room.status = RoomStatus.OCCUPIED
-            agreement.room.save()
-
-            # Update tenant
+            # Update tenant status to active
             agreement.tenant.current_location = agreement.room.location
             agreement.tenant.tenant_status = 'active'
             agreement.tenant.save()
@@ -224,16 +220,20 @@ class RentalService:
                     'error': f'Cannot terminate agreement in {agreement.status} status'
                 }
 
-            # Terminate agreement
+            # Terminate agreement (this also updates room status if no other active agreements)
             agreement.terminate_agreement(termination_date)
 
-            # Update room status
-            agreement.room.status = RoomStatus.AVAILABLE
-            agreement.room.save()
+            # Check if tenant should become former (no other active agreements)
+            from rentals.models import AgreementStatus
+            other_active_agreements = RentalAgreement.objects.filter(
+                tenant=agreement.tenant,
+                status__in=[AgreementStatus.ACTIVE, AgreementStatus.DRAFT]
+            ).exclude(pk=agreement.pk)
 
             # Update tenant
             agreement.tenant.current_location = None
-            agreement.tenant.tenant_status = 'former'
+            if not other_active_agreements.exists():
+                agreement.tenant.tenant_status = 'former'
             agreement.tenant.save()
 
             return {

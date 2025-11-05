@@ -11,10 +11,10 @@
             <div class="flex justify-center mb-8">
                 <img src="{% static 'logo.png' %}" alt="Fayvad Rentals Logo" class="h-16 w-auto">
             </div>
-            <h1 class="text-4xl md:text-6xl font-display font-bold text-white mb-6">
+            <h1 class="text-4xl md:text-6xl font-display font-bold text-white mb-6 drop-shadow-lg">
                 State-of-the-Art Rental Management Solutions
             </h1>
-            <p class="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+            <p class="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
                 Streamline your property management with our comprehensive rental management system built on pure Django technology.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -77,8 +77,8 @@
 <section id="features" class="py-16 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Complete Rental Management System</h2>
-            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Complete Rental Management System</h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 Everything you need to manage rental properties efficiently, built with modern web technologies and pure Django framework.
             </p>
         </div>
@@ -136,8 +136,8 @@
 <section class="py-16 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Get In Touch</h2>
-            <p class="text-xl text-gray-600">Ready to transform your rental management? Contact us today.</p>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Get In Touch</h2>
+            <p class="text-xl text-gray-600 leading-relaxed">Ready to transform your rental management? Contact us today.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
@@ -185,17 +185,17 @@
 </section>
 
 <!-- CTA Section -->
-<section class="py-16 bg-accent">
+<section class="py-16 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-3xl font-bold text-white mb-4">Ready to Modernize Your Rental Management?</h2>
-        <p class="text-xl text-blue-100 mb-8">
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-6 drop-shadow-lg">Ready to Modernize Your Rental Management?</h2>
+        <p class="text-xl text-primary-100 mb-8 max-w-2xl mx-auto leading-relaxed drop-shadow-md">
             Experience our comprehensive rental management platform built with modern Django technology.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="{% url 'accounts:login' %}" class="inline-flex items-center px-8 py-3 border border-white text-base font-medium rounded-md text-white hover:bg-blue-700-800 hover:text-white transition-colors">
+            <a href="{% url 'accounts:login' %}" class="inline-flex items-center px-8 py-3 border-2 border-white text-base font-medium rounded-md text-white hover:bg-white hover:text-primary-700 transition-colors">
                 Try Demo
             </a>
-            <a href="mailto:{{ contact_info.email }}" class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-accent-800 hover:bg-blue-700-900 transition-colors">
+            <a href="mailto:{{ contact_info.email }}" class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-800 hover:bg-primary-900 transition-all duration-200 shadow-lg">
                 Contact Sales
             </a>
         </div>

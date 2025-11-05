@@ -207,6 +207,11 @@ class RentalAgreement(models.Model):
         """Activate the rental agreement"""
         if self.status == AgreementStatus.DRAFT:
             self.status = AgreementStatus.ACTIVE
+            # Update room status to occupied
+            if self.room:
+                from properties.models import RoomStatus
+                self.room.status = RoomStatus.OCCUPIED
+                self.room.save()
             self.save()
 
     def terminate_agreement(self, termination_date=None):
@@ -217,6 +222,20 @@ class RentalAgreement(models.Model):
             self.end_date = termination_date
         else:
             self.end_date = date.today()
+
+        # Check if room should be made available
+        if self.room:
+            # Only make room available if there are no other active agreements for this room
+            other_active_agreements = RentalAgreement.objects.filter(
+                room=self.room,
+                status__in=[AgreementStatus.ACTIVE, AgreementStatus.DRAFT]
+            ).exclude(pk=self.pk)
+
+            if not other_active_agreements.exists():
+                from properties.models import RoomStatus
+                self.room.status = RoomStatus.AVAILABLE
+                self.room.save()
+
         self.save()
 
     def give_notice(self, notice_date=None):

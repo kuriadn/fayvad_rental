@@ -313,11 +313,17 @@ def tenant_dashboard(request, tenant_id):
     payment_count = payments.count()
     recent_payments = payments[:5]  # Last 5 payments
 
+    # Get active rental agreements
+    active_agreements = tenant.rental_agreements.filter(
+        status__in=['active', 'draft']
+    ).select_related('room__location').order_by('-start_date')
+
     context = {
         'tenant': tenant,
         'page_title': f'Dashboard: {tenant.name}',
         'payment_count': payment_count,
         'recent_payments': recent_payments,
+        'active_agreements': active_agreements,
     }
 
     return render(request, 'tenants/tenant_dashboard.html', context)
@@ -498,7 +504,7 @@ def complaint_detail(request, pk):
 @login_required
 def complaint_create(request):
     """Create new complaint"""
-    from .forms import ComplaintForm
+    from .forms import TenantComplaintForm
     from .models import Complaint
 
     # Check if user has tenant profile
@@ -509,7 +515,7 @@ def complaint_create(request):
         return redirect('accounts:profile')
 
     if request.method == 'POST':
-        form = ComplaintForm(request.POST, user=request.user)
+        form = TenantComplaintForm(request.POST, user=request.user)
         if form.is_valid():
             complaint = form.save(commit=False)
             complaint.tenant = tenant_profile
@@ -525,7 +531,7 @@ def complaint_create(request):
         else:
             messages.error(request, "Please correct the errors below.")
     else:
-        form = ComplaintForm(user=request.user)
+        form = TenantComplaintForm(user=request.user)
 
     context = {
         'page_title': 'Submit Complaint',
